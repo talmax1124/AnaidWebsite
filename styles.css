@@ -654,42 +654,42 @@ body {
 
 /* Gallery Images - will use actual photos when available */
 .gallery-img-1 {
-    background-image: url('https://blogscdn.thehut.net/app/uploads/sites/1160/2020/04/woman-doing-face-mask-body.jpg'), linear-gradient(45deg, #E8D5C4, #F0E6D6);
+    background-image: url('images/gallery/gallery-1.jpg'), linear-gradient(45deg, #E8D5C4, #F0E6D6);
     background-size: cover;
     background-position: center;
     position: relative;
 }
 
 .gallery-img-2 {
-    background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZ5GmhQ1wwDq7mV3K83HLP-OVbPpaVNj5K_g&s'), linear-gradient(45deg, #D4B896, #C4A484);
+    background-image: url('images/gallery/gallery-2.jpg'), linear-gradient(45deg, #D4B896, #C4A484);
     background-size: cover;
     background-position: center;
     position: relative;
 }
 
 .gallery-img-3 {
-    background-image: url('https://media.istockphoto.com/id/1482994071/photo/esthetician-applying-acid-peel.jpg?s=612x612&w=0&k=20&c=smrIZwMhVn1CeAVQf3MLNiVtSTDQWMaqeiQpsLeOB_k='), linear-gradient(45deg, #C4A484, #8B7355);
+    background-image: url('images/gallery/gallery-3.jpg'), linear-gradient(45deg, #C4A484, #8B7355);
     background-size: cover;
     background-position: center;
     position: relative;
 }
 
 .gallery-img-4 {
-    background-image: url('https://rixincosmetics.com/wp-content/uploads/2024/04/Esthetician-Facial-Steamer.webp'), linear-gradient(45deg, #F0E6D6, #E8D5C4);
+    background-image: url('images/gallery/gallery-4.jpg'), linear-gradient(45deg, #F0E6D6, #E8D5C4);
     background-size: cover;
     background-position: center;
     position: relative;
 }
 
 .gallery-img-5 {
-    background-image: url('https://images.pexels.com/photos/33637539/pexels-photo-33637539.jpeg?cs=srgb&dl=pexels-louix-hunter-2155276294-33637539.jpg&fm=jpg'), linear-gradient(45deg, #8B7355, #A08B73);
+    background-image: url('images/gallery/gallery-5.jpg'), linear-gradient(45deg, #8B7355, #A08B73);
     background-size: cover;
     background-position: center;
     position: relative;
 }
 
 .gallery-img-6 {
-    background-image: url('https://media.istockphoto.com/id/1419018884/photo/close-up-of-cosmetologist-beautician-applying-facial-dermapen-treatment-on-face-of-young.jpg?s=612x612&w=0&k=20&c=wZkmBl1lPRxEx6QqYrOsh30tFn7-NOGHWRiiJAw5_Hk='), linear-gradient(45deg, #A08B73, #D4B896);
+    background-image: url('images/gallery/gallery-6.jpg'), linear-gradient(45deg, #A08B73, #D4B896);
     background-size: cover;
     background-position: center;
     position: relative;
@@ -897,6 +897,503 @@ body {
     color: var(--primary-color);
     font-size: 0.9rem;
     box-shadow: var(--shadow-light);
+}
+
+/* Booking Section */
+.booking {
+    padding: 120px 0;
+    background: var(--background-warm);
+    position: relative;
+}
+
+.booking-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 24px;
+    box-shadow: var(--shadow-medium);
+    overflow: hidden;
+}
+
+/* Booking Steps */
+.booking-step {
+    display: none;
+    padding: 3rem;
+    min-height: 500px;
+}
+
+.booking-step.active {
+    display: block;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    background: var(--gradient-primary);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-light);
+}
+
+.step-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+/* Service Options */
+.service-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.service-option {
+    padding: 2rem;
+    border: 2px solid var(--border-light);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease-out;
+    background: var(--background-light);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.service-option:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-light);
+}
+
+.service-option.selected {
+    border-color: var(--primary-color);
+    background: var(--gradient-accent);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-medium);
+}
+
+.service-option-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.service-option-info h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.service-option-info p {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.service-option-details {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.duration {
+    color: var(--text-medium);
+}
+
+.price {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Calendar */
+.calendar-container {
+    max-width: 400px;
+    margin: 0 auto;
+    background: var(--background-light);
+    border-radius: 16px;
+    padding: 2rem;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.calendar-nav {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: var(--primary-color);
+    color: var(--white);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s ease-out;
+}
+
+.calendar-nav:hover {
+    background: var(--secondary-color);
+    transform: scale(1.1);
+}
+
+#current-month {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.calendar-grid {
+    width: 100%;
+}
+
+.calendar-days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.calendar-days-header div {
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-medium);
+    padding: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-out;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+}
+
+.calendar-day:hover:not(.disabled):not(.other-month) {
+    background: var(--accent-color);
+    transform: scale(1.05);
+}
+
+.calendar-day.selected {
+    background: var(--primary-color);
+    color: var(--white);
+    transform: scale(1.05);
+}
+
+.calendar-day.disabled {
+    color: var(--text-lightest);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.calendar-day.other-month {
+    color: var(--text-lightest);
+    opacity: 0.3;
+}
+
+.calendar-day.today {
+    background: var(--accent-light);
+    font-weight: 600;
+    border-color: var(--primary-color);
+}
+
+/* Time Slots */
+.selected-date-info {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--background-light);
+    border-radius: 12px;
+}
+
+.selected-date-info p {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-medium);
+}
+
+#selected-date-display {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.time-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.time-slot {
+    padding: 1rem;
+    text-align: center;
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease-out;
+    background: var(--white);
+    font-weight: 500;
+}
+
+.time-slot:hover:not(.disabled) {
+    border-color: var(--primary-color);
+    background: var(--accent-light);
+    transform: translateY(-2px);
+}
+
+.time-slot.selected {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.time-slot.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--background-light);
+    color: var(--text-lightest);
+}
+
+/* Booking Form */
+.booking-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.booking-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.booking-form input,
+.booking-form textarea {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.3s ease-out;
+    background: var(--background-light);
+}
+
+.booking-form input:focus,
+.booking-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.1);
+}
+
+/* Booking Summary */
+.booking-summary {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.summary-section {
+    background: var(--background-light);
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+
+.summary-section h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+.summary-item.total {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--primary-color);
+    border-bottom: none;
+}
+
+.summary-label {
+    color: var(--text-medium);
+    font-weight: 500;
+}
+
+/* Navigation */
+.booking-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 3rem;
+    background: var(--background-light);
+    border-top: 1px solid var(--border-light);
+}
+
+.booking-navigation button {
+    min-width: 120px;
+}
+
+/* Modal */
+.booking-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.booking-modal.active {
+    display: flex;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-strong);
+}
+
+.modal-header {
+    padding: 2rem 2rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.modal-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.modal-body {
+    padding: 2rem;
+    text-align: center;
+}
+
+.modal-body p {
+    color: var(--text-medium);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.calendar-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.modal-footer {
+    padding: 1rem 2rem 2rem;
+    text-align: center;
+    border-top: 1px solid var(--border-light);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .booking-container {
+        margin: 0 10px;
+    }
+    
+    .booking-step {
+        padding: 2rem 1.5rem;
+        min-height: 400px;
+    }
+    
+    .service-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .service-option {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .time-slots {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+    
+    .calendar-buttons {
+        flex-direction: column;
+    }
+    
+    .booking-navigation {
+        padding: 1.5rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .booking-navigation button {
+        width: 100%;
+    }
 }
 
 /* Contact Section */

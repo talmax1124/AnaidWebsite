@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isEsthetician() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'esthetician';
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection (managed by Clerk)
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isEsthetician();
+    }
+    
+    // Services collection (public read, esthetician write)
+    match /services/{serviceId} {
+      allow read: if true; // Public read access
+      allow write: if isEsthetician();
+    }
+    
+    // Clients collection (client can read/write their own data, esthetician can read/write all)
+    match /clients/{clientId} {
+      allow read, write: if isOwner(clientId) || isEsthetician();
+    }
+    
+    // Appointments collection
+    match /appointments/{appointmentId} {
+      allow read: if true; // Allow public read for booking status check
+      allow create: if true; // Allow public creation for new bookings
+      allow update, delete: if isEsthetician() || 
+                           (isAuthenticated() && resource.data.clientId == request.auth.uid);
+    }
+    
+    // Appointment history (esthetician only)
+    match /appointmentHistory/{historyId} {
+      allow read, write: if isEsthetician();
+    }
+    
+    // Business settings (esthetician only)
+    match /businessSettings/{settingId} {
+      allow read: if true; // Public read for business hours, etc.
+      allow write: if isEsthetician();
+    }
+    
+    // Available slots (public read, esthetician write)
+    match /availableSlots/{slotId} {
+      allow read: if true;
+      allow write: if isEsthetician();
+    }
+    
+    // Blackout dates (public read, esthetician write)
+    match /blackoutDates/{dateId} {
+      allow read: if true;
+      allow write: if isEsthetician();
+    }
+    
+    // Reminders (esthetician only)
+    match /reminders/{reminderId} {
+      allow read, write: if isEsthetician();
+    }
+    
+    // Email templates (esthetician only)
+    match /emailTemplates/{templateId} {
+      allow read, write: if isEsthetician();
+    }
+    
+    // SMS templates (esthetician only)
+    match /smsTemplates/{templateId} {
+      allow read, write: if isEsthetician();
+    }
+    
+    // Notification log (esthetician only)
+    match /notificationLog/{logId} {
+      allow read, write: if isEsthetician();
+    }
+    
+    // Client preferences (client can read/write their own, esthetician can read/write all)
+    match /clientPreferences/{clientId} {
+      allow read, write: if isOwner(clientId) || isEsthetician();
+    }
+    
+    // Analytics (esthetician only)
+    match /analytics/{analyticsId} {
+      allow read, write: if isEsthetician();
+    }
+  }
+}

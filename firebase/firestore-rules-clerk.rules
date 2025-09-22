@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated via Clerk
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Services collection - public read, authenticated write
+    match /services/{serviceId} {
+      allow read: if true; // Anyone can read services (for public booking)
+      allow write: if isAuthenticated(); // Only authenticated users can write
+    }
+    
+    // Bookings collection - public create, authenticated read/update
+    match /bookings/{bookingId} {
+      allow read, write: if isAuthenticated(); // Only authenticated admin can manage
+      allow create: if true; // Anyone can create bookings (customers)
+    }
+    
+    // Settings collection - authenticated only
+    match /settings/{settingId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Fallback for development - allow all for now
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
