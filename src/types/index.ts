@@ -5,8 +5,22 @@ export interface Service {
   price: number;
   duration: number; // in minutes
   icon: string;
-  category: 'lashes' | 'brows' | 'other';
+  category: 'lashes' | 'brows' | 'facial' | 'skincare' | 'waxing' | 'nails' | 'hair' | 'massage' | 'makeup' | 'microblading' | 'permanent-makeup' | 'brow-lamination' | 'lip-blush' | 'lash-lift' | 'hydrafacial' | 'chemical-peel' | 'microneedling' | 'dermaplaning' | 'eyebrow-tinting' | 'lash-tinting' | 'threading' | 'body-contouring' | 'lymphatic-drainage' | 'acne-treatment' | 'anti-aging' | 'brightening' | 'sensitive-skin' | 'consultation' | 'package-deals' | 'seasonal-special' | 'other';
   active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AddOn {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  duration: number; // additional minutes
+  icon: string;
+  category: 'lashes' | 'brows' | 'aftercare' | 'enhancement' | 'skincare' | 'tools' | 'products' | 'massage' | 'facial' | 'waxing' | 'nails' | 'hair' | 'makeup' | 'wellness' | 'hydration' | 'cleansing' | 'exfoliation' | 'serum' | 'moisturizer' | 'sunscreen' | 'primer' | 'setting' | 'removal' | 'prep' | 'tinting' | 'lifting' | 'lamination' | 'brightening' | 'soothing' | 'anti-aging' | 'acne-care' | 'sensitive-care' | 'luxury' | 'travel-size' | 'gift-set' | 'other';
+  active: boolean;
+  compatibleServices: string[]; // Service IDs this add-on is compatible with
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,10 +47,16 @@ export interface Booking {
   clientId?: string; // Clerk user ID for authenticated bookings
   serviceId: string;
   serviceName: string;
+  addOns?: {
+    id: string;
+    name: string;
+    price: number;
+    duration: number;
+  }[]; // Selected add-ons for this booking
   date: string; // YYYY-MM-DD
   time: string; // HH:MM
-  duration: number;
-  price: number;
+  duration: number; // Total duration including add-ons
+  price: number; // Total price including add-ons
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show' | 'in-progress' | 'rescheduled';
   notes?: string;
   serviceNotes?: string; // Admin notes about the service performed

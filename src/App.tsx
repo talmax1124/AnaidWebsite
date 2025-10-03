@@ -25,7 +25,7 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <ClerkProvider publishableKey={clerkPubKey!} afterSignOutUrl="/">
+    <ClerkProvider publishableKey={clerkPubKey!}>
       <QueryClientProvider client={queryClient}>
         <Router>
           <div className="min-h-screen bg-gray-50">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, User, Check, ArrowLeft, ArrowRight } from 'lucide-react';
-import { Service } from '../types';
-import { getActiveServices, createBooking, getBookingsByDate } from '../services/firebaseService';
+import { Service, AddOn } from '../types';
+import { getActiveServices, getCompatibleAddOns, createBooking, getBookingsByDate } from '../services/firebaseService';
 import { useUserRole } from '../hooks/useUserRole';
 
 interface BookingStep {
@@ -14,6 +14,8 @@ const BookingPage: React.FC = () => {
   const { user, clerkUser } = useUserRole();
   const [currentStep, setCurrentStep] = useState(1);
   const [services, setServices] = useState<Service[]>([]);
+  const [compatibleAddOns, setCompatibleAddOns] = useState<AddOn[]>([]);
+  const [selectedAddOns, setSelectedAddOns] = useState<AddOn[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
@@ -45,10 +47,11 @@ const BookingPage: React.FC = () => {
 
   const steps: BookingStep[] = [
     { step: 1, title: 'Select Service', icon: <Calendar className="w-5 h-5" /> },
-    { step: 2, title: 'Choose Date', icon: <Calendar className="w-5 h-5" /> },
-    { step: 3, title: 'Pick Time', icon: <Clock className="w-5 h-5" /> },
-    { step: 4, title: 'Your Details', icon: <User className="w-5 h-5" /> },
-    { step: 5, title: 'Confirm', icon: <Check className="w-5 h-5" /> }
+    { step: 2, title: 'Add-Ons', icon: <Check className="w-5 h-5" /> },
+    { step: 3, title: 'Choose Date', icon: <Calendar className="w-5 h-5" /> },
+    { step: 4, title: 'Pick Time', icon: <Clock className="w-5 h-5" /> },
+    { step: 5, title: 'Your Details', icon: <User className="w-5 h-5" /> },
+    { step: 6, title: 'Confirm', icon: <Check className="w-5 h-5" /> }
   ];
 
   useEffect(() => {
@@ -65,6 +68,26 @@ const BookingPage: React.FC = () => {
 
     fetchServices();
   }, []);
+
+  // Load compatible add-ons when service is selected
+  useEffect(() => {
+    const loadCompatibleAddOns = async () => {
+      if (selectedService) {
+        try {
+          const addOns = await getCompatibleAddOns(selectedService.id);
+          setCompatibleAddOns(addOns);
+        } catch (error) {
+          console.error('Error loading compatible add-ons:', error);
+          setCompatibleAddOns([]);
+        }
+      } else {
+        setCompatibleAddOns([]);
+        setSelectedAddOns([]);
+      }
+    };
+
+    loadCompatibleAddOns();
+  }, [selectedService]);
 
   // Generate available time slots
   useEffect(() => {
@@ -165,15 +188,40 @@ const BookingPage: React.FC = () => {
     return maxDate.toISOString().split('T')[0];
   };
 
+  const toggleAddOn = (addOn: AddOn) => {
+    setSelectedAddOns(prev => {
+      const isSelected = prev.some(selected => selected.id === addOn.id);
+      if (isSelected) {
+        return prev.filter(selected => selected.id !== addOn.id);
+      } else {
+        return [...prev, addOn];
+      }
+    });
+  };
+
+  const getTotalDuration = (): number => {
+    if (!selectedService) return 0;
+    const addOnDuration = selectedAddOns.reduce((total, addOn) => total + addOn.duration, 0);
+    return selectedService.duration + addOnDuration;
+  };
+
+  const getTotalPrice = (): number => {
+    if (!selectedService) return 0;
+    const addOnPrice = selectedAddOns.reduce((total, addOn) => total + addOn.price, 0);
+    return selectedService.price + addOnPrice;
+  };
+
   const canProceed = (): boolean => {
     switch (currentStep) {
       case 1:
         return !!selectedService;
       case 2:
-        return !!selectedDate;
+        return true; // Add-ons are optional
       case 3:
-        return !!selectedTime;
+        return !!selectedDate;
       case 4:
+        return !!selectedTime;
+      case 5:
         return !!(clientInfo.name && clientInfo.email && clientInfo.phone);
       default:
         return true;
@@ -181,7 +229,7 @@ const BookingPage: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (canProceed() && currentStep < 5) {
+    if (canProceed() && currentStep < 6) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -209,8 +257,14 @@ const BookingPage: React.FC = () => {
         serviceName: selectedService.name,
         date: selectedDate,
         time: selectedTime,
-        duration: selectedService.duration,
-        price: selectedService.price,
+        addOns: selectedAddOns.length > 0 ? selectedAddOns.map(addOn => ({
+          id: addOn.id,
+          name: addOn.name,
+          price: addOn.price,
+          duration: addOn.duration
+        })) : undefined,
+        duration: getTotalDuration(),
+        price: getTotalPrice(),
         status: 'pending' as const,
         notes: clientInfo.notes || undefined,
         paymentStatus: 'unpaid' as const
@@ -363,8 +417,104 @@ const BookingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 2: Date Selection */}
+          {/* Step 2: Add-On Selection */}
           {currentStep === 2 && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Select Add-Ons (Optional)</h2>
+              
+              {selectedService && (
+                <div className="card mb-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-2xl">{selectedService.icon}</div>
+                    <div>
+                      <h3 className="font-bold text-gray-900">{selectedService.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        {selectedService.duration} minutes • ${selectedService.price}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {compatibleAddOns.length > 0 ? (
+                <div className="space-y-4">
+                  <p className="text-center text-gray-600 mb-6">
+                    Enhance your {selectedService?.name.toLowerCase()} with these premium add-ons:
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {compatibleAddOns.map((addOn) => {
+                      const isSelected = selectedAddOns.some(selected => selected.id === addOn.id);
+                      return (
+                        <div
+                          key={addOn.id}
+                          onClick={() => toggleAddOn(addOn)}
+                          className={`card cursor-pointer transition-all duration-200 ${
+                            isSelected
+                              ? 'ring-2 ring-primary-500 bg-primary-50'
+                              : 'hover:shadow-lg hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-start space-x-4">
+                            <div className="text-2xl">{addOn.icon}</div>
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-bold text-gray-900">{addOn.name}</h3>
+                                {isSelected && (
+                                  <Check className="w-5 h-5 text-primary-600" />
+                                )}
+                              </div>
+                              <p className="text-gray-600 text-sm mb-3">{addOn.description}</p>
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                  <span className="flex items-center">
+                                    <Clock className="w-4 h-4 mr-1" />
+                                    +{addOn.duration}min
+                                  </span>
+                                  <span className="text-lg font-bold text-primary-600">
+                                    +${addOn.price}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {selectedAddOns.length > 0 && (
+                    <div className="card bg-primary-50 border-primary-200">
+                      <h3 className="font-bold text-gray-900 mb-3">Selected Add-Ons Summary:</h3>
+                      <div className="space-y-2">
+                        {selectedAddOns.map((addOn) => (
+                          <div key={addOn.id} className="flex justify-between text-sm">
+                            <span>{addOn.name}</span>
+                            <span>+${addOn.price} • +{addOn.duration}min</span>
+                          </div>
+                        ))}
+                        <div className="border-t pt-2 mt-2 font-bold">
+                          <div className="flex justify-between">
+                            <span>Total Extra:</span>
+                            <span>+${selectedAddOns.reduce((sum, addOn) => sum + addOn.price, 0)} • +{selectedAddOns.reduce((sum, addOn) => sum + addOn.duration, 0)}min</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Check className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No add-ons available</h3>
+                  <p className="text-gray-600">No compatible add-ons found for this service.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 3: Date Selection */}
+          {currentStep === 3 && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Choose a Date</h2>
               
@@ -403,8 +553,8 @@ const BookingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 3: Time Selection */}
-          {currentStep === 3 && (
+          {/* Step 4: Time Selection */}
+          {currentStep === 4 && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Pick a Time</h2>
               
@@ -442,8 +592,8 @@ const BookingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 4: Client Information */}
-          {currentStep === 4 && (
+          {/* Step 5: Client Information */}
+          {currentStep === 5 && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Your Details</h2>
               
@@ -498,8 +648,8 @@ const BookingPage: React.FC = () => {
             </div>
           )}
 
-          {/* Step 5: Confirmation */}
-          {currentStep === 5 && (
+          {/* Step 6: Confirmation */}
+          {currentStep === 6 && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Confirm Your Booking</h2>
               
@@ -523,11 +673,24 @@ const BookingPage: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Duration:</span>
-                        <span className="font-medium">{selectedService.duration} minutes</span>
+                        <span className="font-medium">{getTotalDuration()} minutes</span>
                       </div>
+                      {selectedAddOns.length > 0 && (
+                        <>
+                          <div className="border-t pt-3">
+                            <p className="text-sm font-medium text-gray-700 mb-2">Add-ons:</p>
+                            {selectedAddOns.map((addOn) => (
+                              <div key={addOn.id} className="flex justify-between text-sm text-gray-600 mb-1">
+                                <span>{addOn.name}</span>
+                                <span>+${addOn.price}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
                       <div className="flex justify-between border-t pt-3">
                         <span className="text-gray-900 font-bold">Total:</span>
-                        <span className="text-xl font-bold text-primary-600">${selectedService.price}</span>
+                        <span className="text-xl font-bold text-primary-600">${getTotalPrice()}</span>
                       </div>
                     </div>
                   )}
@@ -583,7 +746,7 @@ const BookingPage: React.FC = () => {
               <span>Previous</span>
             </button>
 
-            {currentStep < 5 ? (
+            {currentStep < 6 ? (
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}

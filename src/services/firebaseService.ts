@@ -13,11 +13,12 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Service, Booking, BusinessSettings, User } from '../types';
+import { Service, AddOn, Booking, BusinessSettings, User } from '../types';
 import { scheduleReminder, sendSMSReminder } from './twilioService';
 
-// Services
+// Collections
 export const servicesCollection = collection(db, 'services');
+export const addOnsCollection = collection(db, 'addOns');
 export const bookingsCollection = collection(db, 'bookings');
 export const usersCollection = collection(db, 'users');
 export const settingsDoc = doc(db, 'settings', 'business');
@@ -89,6 +90,93 @@ export const subscribeToServices = (callback: (services: Service[]) => void) => 
     })) as Service[];
     
     callback(services);
+  });
+};
+
+// AddOn operations
+export const createAddOn = async (addOnData: Omit<AddOn, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const now = new Date();
+  const addOn = {
+    ...addOnData,
+    createdAt: now,
+    updatedAt: now
+  };
+  
+  const docRef = await addDoc(addOnsCollection, addOn);
+  return docRef.id;
+};
+
+export const updateAddOn = async (id: string, updates: Partial<AddOn>) => {
+  const addOnRef = doc(db, 'addOns', id);
+  await updateDoc(addOnRef, {
+    ...updates,
+    updatedAt: new Date()
+  });
+};
+
+export const deleteAddOn = async (id: string) => {
+  const addOnRef = doc(db, 'addOns', id);
+  await deleteDoc(addOnRef);
+};
+
+export const getAddOns = async (): Promise<AddOn[]> => {
+  const q = query(addOnsCollection, orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    createdAt: doc.data().createdAt?.toDate() || new Date(),
+    updatedAt: doc.data().updatedAt?.toDate() || new Date()
+  })) as AddOn[];
+};
+
+export const getActiveAddOns = async (): Promise<AddOn[]> => {
+  const q = query(
+    addOnsCollection, 
+    where('active', '==', true),
+    orderBy('createdAt', 'desc')
+  );
+  const snapshot = await getDocs(q);
+  
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    createdAt: doc.data().createdAt?.toDate() || new Date(),
+    updatedAt: doc.data().updatedAt?.toDate() || new Date()
+  })) as AddOn[];
+};
+
+export const getCompatibleAddOns = async (serviceId: string): Promise<AddOn[]> => {
+  const q = query(
+    addOnsCollection,
+    where('active', '==', true),
+    where('compatibleServices', 'array-contains', serviceId),
+    orderBy('createdAt', 'desc')
+  );
+  const snapshot = await getDocs(q);
+  
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    createdAt: doc.data().createdAt?.toDate() || new Date(),
+    updatedAt: doc.data().updatedAt?.toDate() || new Date()
+  })) as AddOn[];
+};
+
+// Real-time add-ons listener
+export const subscribeToAddOns = (callback: (addOns: AddOn[]) => void) => {
+  const q = query(addOnsCollection, orderBy('createdAt', 'desc'));
+  
+  return onSnapshot(q, (snapshot) => {
+    const addOns = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date()
+    })) as AddOn[];
+    
+    callback(addOns);
   });
 };
 

@@ -15,9 +15,7 @@ const Navbar: React.FC = () => {
     ...(clerkUser ? [
       { name: 'Book Appointment', href: '/booking' },
       { name: 'My Appointments', href: '/manage' },
-    ] : [
-      { name: 'Sign In to Book', href: '/booking' },
-    ])
+    ] : [])
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -32,7 +30,7 @@ const Navbar: React.FC = () => {
               <span className="text-white font-bold text-sm">EA</span>
             </div>
             <span className="font-display text-xl font-bold text-gray-900">
-              Esthithics By Anna
+              Esthetics By Anna
             </span>
           </Link>
 
@@ -67,7 +65,7 @@ const Navbar: React.FC = () => {
             )}
 
             {clerkUser ? (
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
             ) : (
               <Link to="/booking" className="btn-primary">
                 <Calendar className="w-4 h-4 mr-2" />
@@ -123,7 +121,7 @@ const Navbar: React.FC = () => {
 
               <div className="pt-2">
                 {clerkUser ? (
-                  <UserButton afterSignOutUrl="/" />
+                  <UserButton />
                 ) : (
                   <Link
                     to="/booking"

@@ -1,26 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Star, Phone, Mail, Clock } from 'lucide-react';
-import { getActiveServices } from '../services/firebaseService';
-import { Service } from '../types';
+import { getActiveServices, getActiveAddOns } from '../services/firebaseService';
+import { Service, AddOn } from '../types';
 
 const HomePage: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
+  const [addOns, setAddOns] = useState<AddOn[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchData = async () => {
       try {
-        const activeServices = await getActiveServices();
+        const [activeServices, activeAddOns] = await Promise.all([
+          getActiveServices(),
+          getActiveAddOns()
+        ]);
         setServices(activeServices.slice(0, 4)); // Show only first 4 services
-        setLoading(false);
+        setAddOns(activeAddOns.slice(0, 6)); // Show only first 6 add-ons
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching data:', error);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchServices();
+    fetchData().catch(error => {
+      console.error('Unhandled error in fetchData:', error);
+      setLoading(false);
+    });
   }, []);
 
   const testimonials = [
@@ -53,7 +61,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-50 to-secondary-50 section-padding">
+      <section className="relative bg-gradient-to-br from-primary-50 to-secondary-50 section-padding overflow-hidden">
         <div className="container-custom">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
@@ -77,7 +85,7 @@ const HomePage: React.FC = () => {
               </div>
             </div>
             
-            <div className="relative">
+            <div className="relative overflow-hidden rounded-2xl">
               <div className="aspect-square bg-gradient-to-br from-primary-200 to-secondary-200 rounded-2xl shadow-2xl overflow-hidden">
                 <img 
                   src="/images/gallery/gallery-1.jpg" 
@@ -85,12 +93,13 @@ const HomePage: React.FC = () => {
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     // Fallback if image doesn't load
-                    e.currentTarget.style.display = 'none';
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = 'none';
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               </div>
-              <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-xl shadow-xl">
+              <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-xl shadow-xl hidden sm:block">
                 <h3 className="font-bold text-gray-900 mb-1">Premium Quality</h3>
                 <p className="text-sm text-gray-600">Certified & Professional</p>
               </div>
@@ -161,10 +170,45 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Add-Ons Section */}
+      {addOns.length > 0 && (
+        <section className="section-padding bg-gray-50">
+          <div className="container-custom">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Enhance Your Experience</h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Add these premium enhancements to any service for the ultimate lash experience
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {addOns.map((addOn) => (
+                <div key={addOn.id} className="card text-center hover:shadow-lg transition-all duration-300">
+                  <div className="text-3xl mb-3">{addOn.icon}</div>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-sm">{addOn.name}</h3>
+                  <p className="text-xs text-gray-600 mb-3 line-clamp-2">{addOn.description}</p>
+                  <div className="flex justify-center items-center space-x-2 text-xs text-gray-500">
+                    <span className="font-bold text-primary-600">+${addOn.price}</span>
+                    <span>•</span>
+                    <span>+{addOn.duration}min</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mt-8">
+              <Link to="/booking" className="btn-primary">
+                Book with Add-Ons
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Stats Section */}
       <section className="section-padding bg-gray-50">
         <div className="container-custom">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
             {[
               { number: '500+', label: 'Happy Clients' },
               { number: '5', label: 'Years Experience' },
@@ -204,7 +248,8 @@ const HomePage: React.FC = () => {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
                     // Fallback to gradient background if image doesn't load
-                    e.currentTarget.style.display = 'none';
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = 'none';
                   }}
                 />
               </div>
@@ -250,7 +295,7 @@ const HomePage: React.FC = () => {
             <div className="space-y-6">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Meet Anna</h2>
               <p className="text-lg font-medium text-primary-600">
-                Certified Lash Artist & Beauty Specialist
+                Licensed Esthetician and Phlebotomist 
               </p>
               <p className="text-gray-600 leading-relaxed">
                 With over 5 years of experience in the beauty industry, Anna specializes in creating 
@@ -271,14 +316,20 @@ const HomePage: React.FC = () => {
               </div>
             </div>
             
-            <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-primary-200 to-secondary-200 rounded-2xl shadow-xl">
-                {/* Placeholder for Anna's photo */}
-                <div className="w-full h-full flex items-center justify-center text-6xl text-primary-600">
-                  👩‍💼
-                </div>
+            <div className="relative overflow-hidden rounded-2xl">
+              <div className="aspect-square bg-gradient-to-br from-primary-200 to-secondary-200 rounded-2xl shadow-xl overflow-hidden">
+                <img 
+                  src="https://i.ibb.co/4nRTzbwX/IMG-8889.jpg"
+                  alt="Anna - Certified Lash Artist"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback if image doesn't load
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
               </div>
-              <div className="absolute -top-6 -left-6 bg-white p-4 rounded-lg shadow-lg">
+              <div className="absolute -top-6 -left-6 bg-white p-4 rounded-lg shadow-lg hidden sm:block">
                 <span className="text-sm font-medium text-primary-600">Certified Professional</span>
               </div>
             </div>
@@ -287,7 +338,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="section-padding bg-primary-600 text-white">
+      <section className="section-padding bg-primary-600 text-white overflow-hidden">
         <div className="container-custom">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div>

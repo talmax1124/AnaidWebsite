@@ -10,8 +10,50 @@ interface ServiceModalProps {
 }
 
 const emojiOptions = [
+  // Beauty & Glamour
   '✨', '💫', '🌟', '💎', '👁️', '🎯', '🔥', '💖', 
-  '🌺', '🦋', '💐', '🌸', '🌿', '⭐', '💝', '🎨'
+  '🌺', '🦋', '💐', '🌸', '🌿', '⭐', '💝', '🎨',
+  '💧', '🧴', '🎪', '🏆', '💆', '🧼', '🎀', '💄',
+  '🌈', '💍', '🎭', '🔮', '🍃', '🌙', '☀️', '⚡',
+  '🌊', '🕊️', '🌷', '🌹', '🥀', '🌻', '🌱', '🦢',
+  '🧚', '🪶', '💅', '🎗️', '🎳', '🎲', '🔬', '🪄',
+  '💊', '🌀', '✂️', '🪞', '🧴', '🌴', '🍯', '🌵',
+  '🪷', '🌺', '🥥', '🍀', '🌿', '🍃', '🔸', '🔹',
+  '💠', '🔷', '🔶', '⚪', '🟢', '🟣', '🟡', '🟠',
+  // Lashes & Eyes
+  '👀', '👁️‍🗨️', '🤍', '🖤', '💜', '💙', '💚', '🤎',
+  '✏️', '🖊️', '🖌️', '🎪', '🌸', '🦚', '🕷️', '🕸️',
+  // Skincare & Wellness
+  '🧴', '🧽', '🧼', '🧊', '💎', '🤲', '👐', '🙌',
+  '🌿', '🍀', '🌱', '🌾', '🌳', '🌲', '🎋', '🪴',
+  '🥒', '🥑', '🍃', '🌊', '💧', '❄️', '🧊', '⛄',
+  // Facial & Spa
+  '🧖‍♀️', '🧘‍♀️', '🛁', '🚿', '🧴', '🪥', '🪒', '🪃',
+  '⛑️', '🎭', '🎪', '🎨', '🖼️', '🖌️', '🎯', '🎪',
+  // Hair & Color
+  '💇‍♀️', '💆‍♀️', '🎨', '🌈', '🦄', '🎪', '🎭', '🎯',
+  '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '🟤', '⚫',
+  '⚪', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '🟫',
+  // Nails & Manicure
+  '💅', '💍', '💎', '✨', '🌟', '⭐', '🌠', '💫',
+  '🎨', '🖌️', '✏️', '🖊️', '🖍️', '🎪', '🎭', '🎯',
+  // Special Occasions
+  '👰‍♀️', '🤵‍♀️', '💒', '🎊', '🎉', '🥳', '🎈', '🎀',
+  '🎁', '💝', '🎂', '🍰', '🧁', '🍭', '🍬', '🍫',
+  // Nature & Organic
+  '🌿', '🍃', '🌱', '🌾', '🌳', '🌲', '🎋', '🪴',
+  '🥒', '🥑', '🥬', '🥦', '🌽', '🍇', '🍓', '🫐',
+  '🍊', '🍋', '🍌', '🥭', '🍑', '🍒', '🍉', '🥝',
+  // Luxury & Premium
+  '👑', '💎', '💍', '💰', '🏆', '🥇', '🌟', '⭐',
+  '✨', '💫', '🌠', '🎪', '🎭', '🎯', '🔮', '🪄',
+  // Seasonal & Special
+  '❄️', '🌨️', '☃️', '⛄', '🎄', '🎅', '🤶', '🎁',
+  '🌸', '🌺', '🌻', '🌷', '🌹', '🥀', '💐', '🌼',
+  '🍂', '🍁', '🎃', '👻', '🦇', '🕷️', '🕸️', '🌙',
+  '☀️', '🌞', '🌝', '🌛', '🌜', '🌚', '🌕', '🌖',
+  // Extra variety
+  '👑', '🪷', '🍵', '🍯', '🧖‍♀️', '🛁', '🚿', '🧊'
 ];
 
 const ServiceModal: React.FC<ServiceModalProps> = ({ 
@@ -26,7 +68,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({
     price: '',
     duration: '',
     icon: '✨',
-    category: 'lashes' as 'lashes' | 'brows' | 'other',
+    category: 'lashes' as Service['category'],
     active: true
   });
 
@@ -171,8 +213,7 @@ const ServiceModal: React.FC<ServiceModalProps> = ({
               <label className="form-label">Duration (min) *</label>
               <input
                 type="number"
-                min="15"
-                step="15"
+                min="1"
                 value={formData.duration}
                 onChange={(e) => handleChange('duration', e.target.value)}
                 className={`form-input ${errors.duration ? 'border-red-500' : ''}`}
@@ -191,7 +232,35 @@ const ServiceModal: React.FC<ServiceModalProps> = ({
               className="form-input"
             >
               <option value="lashes">Lashes</option>
+              <option value="lash-lift">Lash Lift</option>
+              <option value="lash-tinting">Lash Tinting</option>
               <option value="brows">Brows</option>
+              <option value="brow-lamination">Brow Lamination</option>
+              <option value="eyebrow-tinting">Eyebrow Tinting</option>
+              <option value="microblading">Microblading</option>
+              <option value="permanent-makeup">Permanent Makeup</option>
+              <option value="lip-blush">Lip Blush</option>
+              <option value="threading">Threading</option>
+              <option value="facial">Facial</option>
+              <option value="hydrafacial">HydraFacial</option>
+              <option value="chemical-peel">Chemical Peel</option>
+              <option value="microneedling">Microneedling</option>
+              <option value="dermaplaning">Dermaplaning</option>
+              <option value="skincare">Skincare</option>
+              <option value="acne-treatment">Acne Treatment</option>
+              <option value="anti-aging">Anti-Aging</option>
+              <option value="brightening">Brightening</option>
+              <option value="sensitive-skin">Sensitive Skin</option>
+              <option value="massage">Massage</option>
+              <option value="lymphatic-drainage">Lymphatic Drainage</option>
+              <option value="body-contouring">Body Contouring</option>
+              <option value="waxing">Waxing</option>
+              <option value="nails">Nails</option>
+              <option value="hair">Hair</option>
+              <option value="makeup">Makeup</option>
+              <option value="consultation">Consultation</option>
+              <option value="package-deals">Package Deals</option>
+              <option value="seasonal-special">Seasonal Special</option>
               <option value="other">Other</option>
             </select>
           </div>
