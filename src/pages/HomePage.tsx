@@ -343,7 +343,7 @@ const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Book Your Appointment</h2>
-              <p className="text-primary-100 mb-8 text-lg leading-relaxed">
+              <p className="text-primary-800 mb-8 text-lg leading-relaxed">
                 Ready to transform your lashes? Get in touch to schedule your consultation and 
                 experience the difference of professional lash extensions.
               </p>
@@ -355,7 +355,7 @@ const HomePage: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold mb-1">Phone</h4>
-                    <p className="text-primary-100">321 316 9898</p>
+                    <p className="text-black">321 316 9898</p>
                   </div>
                 </div>
 
@@ -365,7 +365,7 @@ const HomePage: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold mb-1">Email</h4>
-                    <p className="text-primary-100">anaidmdiazplaza@gmail.com</p>
+                    <p className="text-black">anaidmdiazplaza@gmail.com</p>
                   </div>
                 </div>
 

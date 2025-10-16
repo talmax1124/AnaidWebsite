@@ -2,47 +2,294 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;600;700&family=Cormorant+Garamond:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap');
 
 @layer base {
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Poppins', 'Montserrat', sans-serif;
+    font-weight: 300;
     line-height: 1.6;
-    color: #374151;
+    color: #000000 !important;
+    background-color: #e6d8c4 !important;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
     font-weight: 600;
+    color: #000000 !important;
+  }
+
+  /* Force all paragraph and span text to be black */
+  p, span, label, div {
+    color: #000000;
+  }
+
+  /* Force all input elements to have strong borders */
+  input, textarea, select {
+    border: 2px solid #000000 !important;
+    color: #000000 !important;
+    background-color: #f8f5f1 !important;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: #000000 !important;
+    outline: 2px solid #000000 !important;
+    outline-offset: 2px;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #666666 !important;
+    opacity: 1 !important;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg;
+    background-color: #f3e6de !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    border: 2px solid #000000 !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.3s ease !important;
   }
-  
+
+  .btn-primary:hover {
+    background-color: #e6d8c4 !important;
+    transform: scale(1.02) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important;
+  }
+
   .btn-secondary {
-    @apply bg-transparent border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white font-medium py-3 px-6 rounded-lg transition duration-300 ease-in-out;
+    background-color: transparent !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    border: 2px solid #000000 !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.3s ease !important;
   }
-  
+
+  .btn-secondary:hover {
+    background-color: #f3e6de !important;
+  }
+
   .section-padding {
     @apply py-20 px-4;
   }
-  
+
   .container-custom {
     @apply max-w-7xl mx-auto;
   }
-  
+
   .card {
-    @apply bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300;
+    background-color: #f8f5f1 !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    padding: 1.5rem !important;
+    border: 1px solid #999999 !important;
   }
-  
+
+  .card:hover {
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
   .form-input {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200;
+    width: 100% !important;
+    padding: 0.75rem 1rem !important;
+    border: 2px solid #000000 !important;
+    border-radius: 0.5rem !important;
+    background-color: #f8f5f1 !important;
+    color: #000000 !important;
+    font-size: 1rem !important;
   }
-  
+
+  .form-input:focus {
+    outline: 2px solid #000000 !important;
+    outline-offset: 2px !important;
+    border-color: #000000 !important;
+  }
+
+  .form-input::placeholder {
+    color: #666666 !important;
+    opacity: 1 !important;
+  }
+
+  .form-input:disabled {
+    background-color: #e6d8c4 !important;
+    border-color: #666666 !important;
+    color: #666666 !important;
+    cursor: not-allowed !important;
+  }
+
   .form-label {
-    @apply block text-sm font-medium text-gray-700 mb-2;
+    display: block !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
+    margin-bottom: 0.5rem !important;
+  }
+}
+
+@layer utilities {
+  /* Text color utilities - force black for readability */
+  .text-primary-600,
+  .text-primary-700,
+  .text-primary-800,
+  .text-primary-900,
+  .text-gray-900,
+  .text-gray-800,
+  .text-gray-700,
+  .text-gray-600 {
+    color: #000000 !important;
+  }
+
+  .text-gray-500,
+  .text-gray-400 {
+    color: #333333 !important;
+  }
+
+  /* Small text gets black for contrast */
+  .text-xs, .text-sm {
+    color: #000000 !important;
+  }
+
+  /* Border utilities - strong visible borders */
+  .border,
+  .border-2 {
+    border-color: #000000 !important;
+  }
+
+  .border-gray-300,
+  .border-gray-200 {
+    border-color: #999999 !important;
+  }
+
+  .border-primary-500,
+  .border-primary-600 {
+    border-color: #000000 !important;
+  }
+
+  /* Background overrides */
+  .bg-gray-50,
+  .bg-gray-100 {
+    background-color: #f8f5f1 !important;
+  }
+
+  .bg-white {
+    background-color: #f8f5f1 !important;
+  }
+
+  .bg-primary-50 {
+    background-color: #f8f5f1 !important;
+    color: #000000 !important;
+  }
+
+  .bg-primary-100 {
+    background-color: #e6d8c4 !important;
+    color: #000000 !important;
+  }
+
+  .bg-primary-600 {
+    background-color: #f3e6de !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
+  }
+
+  /* Ring/focus utilities */
+  .ring-primary-500,
+  .ring-primary-600,
+  .focus\:ring-primary-500:focus,
+  .focus\:ring-primary-600:focus {
+    --tw-ring-color: #000000 !important;
+  }
+
+  /* Disabled state */
+  .cursor-not-allowed {
+    opacity: 0.6 !important;
+    background-color: #e6d8c4 !important;
+  }
+
+  /* Date input specific */
+  input[type="date"],
+  input[type="time"] {
+    border: 2px solid #000000 !important;
+    background-color: #f8f5f1 !important;
+    color: #000000 !important;
+    padding: 0.75rem !important;
+  }
+
+  /* Button overrides for anything using button classes */
+  button {
+    border: 2px solid #000000 !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+  }
+
+  button:disabled {
+    background-color: #d9d9d9 !important;
+    color: #666666 !important;
+    border-color: #999999 !important;
+    cursor: not-allowed !important;
+  }
+
+  /* Links */
+  a {
+    color: #000000 !important;
+    text-decoration-color: #000000 !important;
+  }
+
+  /* Ensure all hover states for primary elements use proper colors */
+  .hover\:bg-primary-600:hover,
+  .hover\:bg-primary-700:hover {
+    background-color: #e6d8c4 !important;
+    color: #000000 !important;
+  }
+
+  .hover\:text-primary-600:hover {
+    color: #000000 !important;
+  }
+
+  .hover\:border-primary-300:hover,
+  .hover\:border-primary-500:hover {
+    border-color: #000000 !important;
+  }
+
+  /* Specific overrides for backgrounds that need strong contrast */
+  .bg-blue-50 {
+    background-color: #e6f0ff !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+  }
+
+  .text-blue-800 {
+    color: #000000 !important;
+  }
+
+  .bg-green-100 {
+    background-color: #d4f4dd !important;
+  }
+
+  .text-green-600 {
+    color: #000000 !important;
+  }
+
+  /* Progress indicators */
+  .bg-primary-600,
+  .bg-primary-500 {
+    background-color: #f3e6de !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
+  }
+
+  /* Selected states */
+  .ring-2 {
+    --tw-ring-color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .ring-primary-500,
+  .ring-primary-600 {
+    --tw-ring-color: #000000 !important;
   }
 }
