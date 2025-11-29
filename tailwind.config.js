@@ -6,6 +6,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        'soft-beige': '#f8f5f1',
+        'warm-nude': '#e6d8c4',
+        'muted-blush': '#f3e6de',
         primary: {
           50: '#fdf2f8',
           100: '#fce7f3',

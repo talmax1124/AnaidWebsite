@@ -6,15 +6,40 @@
 
 @layer base {
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Poppins', 'Montserrat', sans-serif;
+    font-weight: 300;
     line-height: 1.6;
     color: #1a1a1a;
     @apply antialiased bg-gradient-to-br from-primary-50/30 via-white to-secondary-50/20;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
     font-weight: 600;
+    color: #000000 !important;
+  }
+
+  /* Force all paragraph and span text to be black */
+  p, span, label, div {
+    color: #000000;
+  }
+
+  /* Force all input elements to have strong borders */
+  input, textarea, select {
+    border: 2px solid #000000 !important;
+    color: #000000 !important;
+    background-color: #f8f5f1 !important;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: #000000 !important;
+    outline: 2px solid #000000 !important;
+    outline-offset: 2px;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #666666 !important;
+    opacity: 1 !important;
   }
 }
 
@@ -160,7 +185,7 @@
   .section-padding {
     @apply py-20 md:py-24 lg:py-28 px-4;
   }
-  
+
   .container-custom {
     @apply max-w-7xl mx-auto;
   }
