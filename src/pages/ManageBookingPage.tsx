@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, DollarSign, Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { Booking } from '../types';
-import { getUserBookings, updateBooking } from '../services/firebaseService';
+import { getUserBookings, updateBooking } from '../services/bookingService';
 import { useUserRole } from '../hooks/useUserRole';
 import CalendarButtons from '../components/CalendarButtons';
 
-const ManageBookingPage: React.FC = () => {
-  const { clerkUser } = useUserRole();
+interface ManageBookingSectionProps {
+  embedded?: boolean;
+  onBookClick?: () => void;
+  refreshTrigger?: number;
+}
+
+const BOOKING_SECTION_PATH = '/services#booking';
+
+export const ManageBookingSection: React.FC<ManageBookingSectionProps> = ({
+  embedded = false,
+  onBookClick,
+  refreshTrigger = 0
+}) => {
+  const { user } = useUserRole();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -15,13 +26,13 @@ const ManageBookingPage: React.FC = () => {
 
   useEffect(() => {
     const loadUserBookings = async () => {
-      if (!clerkUser) return;
+      if (!user) return;
       
       setLoading(true);
       setError('');
       
       try {
-        const userBookings = await getUserBookings(clerkUser.id);
+        const userBookings = await getUserBookings(user.id);
         setBookings(userBookings);
       } catch (err) {
         setError('Error loading your bookings. Please try again.');
@@ -32,7 +43,7 @@ const ManageBookingPage: React.FC = () => {
     };
 
     loadUserBookings();
-  }, [clerkUser]);
+  }, [user, refreshTrigger]);
 
   const cancelBooking = async (bookingId: string) => {
     const booking = bookings.find(b => b.id === bookingId);
@@ -113,152 +124,196 @@ const ManageBookingPage: React.FC = () => {
     }
   };
 
+  const handleBookNavigation = () => {
+    if (onBookClick) {
+      onBookClick();
+    } else {
+      window.location.href = BOOKING_SECTION_PATH;
+    }
+  };
+
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+    const loader = (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600"></div>
       </div>
     );
+
+    return embedded ? loader : (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        {loader}
+      </div>
+    );
+  }
+
+  const content = (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Appointments</h1>
+          <p className="text-gray-600">
+            Manage your bookings and appointments
+          </p>
+        </div>
+        <button onClick={handleBookNavigation} className="btn-primary flex items-center space-x-2">
+          <Plus className="w-4 h-4" />
+          <span>Book New Appointment</span>
+        </button>
+      </div>
+
+      {/* Alerts */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">{error}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <p className="text-green-800">{success}</p>
+        </div>
+      )}
+
+      {/* Bookings List */}
+      {bookings.length > 0 ? (
+        <div className="space-y-6">
+          {bookings.map((booking) => (
+            <div key={booking.id} className="card">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="text-2xl">💅</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{booking.serviceName}</h3>
+                    <p className="text-sm text-gray-600">Booking ID: {booking.id.slice(-8)}</p>
+                  </div>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getStatusColor(booking.status)}`}>
+                  {booking.status}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">{formatDate(booking.date)}</p>
+                    <p className="text-sm text-gray-600">Date</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <Clock className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">{formatTime(booking.time)}</p>
+                    <p className="text-sm text-gray-600">{booking.duration} minutes</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <DollarSign className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">${booking.price}</p>
+                    <p className="text-sm text-gray-600">Total cost</p>
+                  </div>
+                </div>
+              </div>
+
+              {booking.addOns && booking.addOns.length > 0 && (
+                <div className="mb-4">
+                  <div className="bg-secondary-50 border border-secondary-200 p-4 rounded-xl">
+                    <p className="text-sm font-semibold text-secondary-800 mb-3 flex items-center">
+                      ✨ Add-ons:
+                    </p>
+                    <div className="space-y-2">
+                      {booking.addOns.map((addOn: any, index: number) => (
+                        <div key={index} className="flex justify-between text-sm bg-white p-2 rounded-lg border border-secondary-100">
+                          <span className="text-neutral-700">• {addOn.name}</span>
+                          <span className="text-primary-600 font-semibold">+${addOn.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {booking.notes && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                    <strong>Notes:</strong> {booking.notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Calendar Integration */}
+              {booking.status === 'confirmed' && (
+                <div className="mb-4">
+                  <CalendarButtons booking={booking} />
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="border-t pt-4">
+                {booking.status === 'pending' || booking.status === 'confirmed' ? (
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <button
+                      onClick={() => cancelBooking(booking.id)}
+                      className="btn-secondary text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      Cancel Booking
+                    </button>
+                    
+                    <div className="text-sm text-gray-500 text-right">
+                      <p>Need to reschedule?</p>
+                      <p>Call us at <a href="tel:3213169898" className="text-primary-600 hover:underline">321 316 9898</a></p>
+                    </div>
+                  </div>
+                ) : booking.status === 'cancelled' ? (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-red-800 text-sm">
+                      This booking has been cancelled.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-blue-800 text-sm">
+                      This appointment has been completed. Thank you!
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No appointments yet</h3>
+          <p className="text-gray-600 mb-6">Book your first appointment to get started!</p>
+          <button onClick={handleBookNavigation} className="btn-primary inline-flex items-center space-x-2">
+            <Plus className="w-4 h-4" />
+            <span>Book Appointment</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  if (embedded) {
+    return content;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container-custom">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">My Appointments</h1>
-              <p className="text-gray-600">
-                Manage your bookings and appointments
-              </p>
-            </div>
-            <Link to="/booking" className="btn-primary flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>Book New Appointment</span>
-            </Link>
-          </div>
-
-          {/* Alerts */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-800">{error}</p>
-            </div>
-          )}
-
-          {success && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-              <p className="text-green-800">{success}</p>
-            </div>
-          )}
-
-          {/* Bookings List */}
-          {bookings.length > 0 ? (
-            <div className="space-y-6">
-              {bookings.map((booking) => (
-                <div key={booking.id} className="card">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="text-2xl">💅</div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{booking.serviceName}</h3>
-                        <p className="text-sm text-gray-600">Booking ID: {booking.id.slice(-8)}</p>
-                      </div>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getStatusColor(booking.status)}`}>
-                      {booking.status}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="flex items-center space-x-3">
-                      <Calendar className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="font-medium">{formatDate(booking.date)}</p>
-                        <p className="text-sm text-gray-600">Date</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      <Clock className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="font-medium">{formatTime(booking.time)}</p>
-                        <p className="text-sm text-gray-600">{booking.duration} minutes</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      <DollarSign className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="font-medium">${booking.price}</p>
-                        <p className="text-sm text-gray-600">Total cost</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {booking.notes && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                        <strong>Notes:</strong> {booking.notes}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Calendar Integration */}
-                  {booking.status === 'confirmed' && (
-                    <div className="mb-4">
-                      <CalendarButtons booking={booking} />
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="border-t pt-4">
-                    {booking.status === 'pending' || booking.status === 'confirmed' ? (
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <button
-                          onClick={() => cancelBooking(booking.id)}
-                          className="btn-secondary text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          Cancel Booking
-                        </button>
-                        
-                        <div className="text-sm text-gray-500 text-right">
-                          <p>Need to reschedule?</p>
-                          <p>Call us at <a href="tel:3213169898" className="text-primary-600 hover:underline">321 316 9898</a></p>
-                        </div>
-                      </div>
-                    ) : booking.status === 'cancelled' ? (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                        <p className="text-red-800 text-sm">
-                          This booking has been cancelled.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-blue-800 text-sm">
-                          This appointment has been completed. Thank you!
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No appointments yet</h3>
-              <p className="text-gray-600 mb-6">Book your first appointment to get started!</p>
-              <Link to="/booking" className="btn-primary inline-flex items-center space-x-2">
-                <Plus className="w-4 h-4" />
-                <span>Book Appointment</span>
-              </Link>
-            </div>
-          )}
+          {content}
         </div>
       </div>
     </div>
   );
 };
+
+const ManageBookingPage: React.FC = () => <ManageBookingSection />;
 
 export default ManageBookingPage;

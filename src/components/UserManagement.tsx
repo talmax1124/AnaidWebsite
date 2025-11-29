@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, User as UserIcon, Crown } from 'lucide-react';
 import { User } from '../types';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -15,19 +13,30 @@ const UserManagement: React.FC = () => {
 
   const loadUsers = async () => {
     try {
-      const usersCollection = collection(db, 'users');
-      const snapshot = await getDocs(usersCollection);
+      const response = await fetch('http://localhost:3001/api/users');
+      const result = await response.json();
       
-      const usersData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date()
-      })) as User[];
-      
-      setUsers(usersData);
+      if (result.success && result.data && Array.isArray(result.data)) {
+        const usersData = result.data.map((user: any) => ({
+          id: user.id.toString(),
+          clerkId: user.id.toString(), // Using ID as clerkId for compatibility
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          phone: user.phone,
+          role: user.role,
+          createdAt: new Date(user.created_at),
+          updatedAt: new Date(user.updated_at || user.created_at)
+        })) as User[];
+        
+        setUsers(usersData);
+      } else {
+        console.error('Failed to load users or invalid data structure:', result);
+        setUsers([]); // Set empty array as fallback
+      }
     } catch (error) {
       console.error('Error loading users:', error);
+      setUsers([]); // Set empty array as fallback
     } finally {
       setLoading(false);
     }
@@ -37,16 +46,24 @@ const UserManagement: React.FC = () => {
     setUpdating(userId);
     
     try {
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        role: newRole,
-        updatedAt: new Date()
+      const response = await fetch(`http://localhost:3001/api/users/${userId}/role`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ role: newRole })
       });
       
-      // Update local state
-      setUsers(prev => prev.map(user => 
-        user.id === userId ? { ...user, role: newRole } : user
-      ));
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update local state
+        setUsers(prev => prev.map(user => 
+          user.id === userId ? { ...user, role: newRole } : user
+        ));
+      } else {
+        console.error('Failed to update user role:', result.message);
+      }
     } catch (error) {
       console.error('Error updating user role:', error);
     } finally {
@@ -88,7 +105,7 @@ const UserManagement: React.FC = () => {
               <div className="flex items-center">
                 <UserIcon className="w-8 h-8 text-blue-600 mr-3" />
                 <div>
-                  <p className="text-2xl font-bold text-blue-900">{users.filter(u => u.role === 'customer').length}</p>
+                  <p className="text-2xl font-bold text-blue-900">{Array.isArray(users) ? users.filter(u => u.role === 'customer').length : 0}</p>
                   <p className="text-sm text-blue-600">Customers</p>
                 </div>
               </div>
@@ -98,7 +115,7 @@ const UserManagement: React.FC = () => {
               <div className="flex items-center">
                 <Crown className="w-8 h-8 text-purple-600 mr-3" />
                 <div>
-                  <p className="text-2xl font-bold text-purple-900">{users.filter(u => u.role === 'admin').length}</p>
+                  <p className="text-2xl font-bold text-purple-900">{Array.isArray(users) ? users.filter(u => u.role === 'admin').length : 0}</p>
                   <p className="text-sm text-purple-600">Admins</p>
                 </div>
               </div>
@@ -108,7 +125,7 @@ const UserManagement: React.FC = () => {
               <div className="flex items-center">
                 <Users className="w-8 h-8 text-green-600 mr-3" />
                 <div>
-                  <p className="text-2xl font-bold text-green-900">{users.length}</p>
+                  <p className="text-2xl font-bold text-green-900">{Array.isArray(users) ? users.length : 0}</p>
                   <p className="text-sm text-green-600">Total Users</p>
                 </div>
               </div>
@@ -135,7 +152,7 @@ const UserManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
+              {Array.isArray(users) && users.map((user) => (
                 <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -198,7 +215,7 @@ const UserManagement: React.FC = () => {
           </table>
         </div>
         
-        {users.length === 0 && (
+        {(!Array.isArray(users) || users.length === 0) && (
           <div className="text-center py-8">
             <Users className="w-12 h-12 text-gray-300 mx-auto mb-2" />
             <p className="text-gray-500">No users found</p>

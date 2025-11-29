@@ -1,35 +1,44 @@
 {
-  "name": "estheticsbyanna-backend",
+  "name": "esthetics-backend",
   "version": "1.0.0",
-  "description": "Backend API for estheticsbyanna booking system",
+  "description": "Backend API for Esthetics by Anna e-commerce",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "setup-db": "node scripts/setup-database.js",
-    "seed": "node scripts/seed-data.js"
+    "init-db": "node scripts/initDatabase.js",
+    "migrate-cart": "node scripts/updateCartItemsSchema.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mysql2": "^3.6.0",
+    "@neondatabase/serverless": "^1.0.2",
+    "@plunk/node": "^3.0.3",
+    "@sanity/client": "^7.13.1",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.3.1",
-    "nodemailer": "^6.9.4",
-    "twilio": "^4.15.0",
-    "moment": "^2.29.4",
-    "moment-timezone": "^0.5.43",
-    "node-cron": "^3.0.2",
-    "express-rate-limit": "^6.10.0",
+    "express": "^4.18.2",
+    "express-validator": "^7.3.1",
     "helmet": "^7.0.0",
-    "express-validator": "^7.0.1",
-    "multer": "^1.4.5-lts.1"
+    "joi": "^17.9.2",
+    "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.6.0",
+    "morgan": "^1.10.0",
+    "node-fetch": "^2.7.0",
+    "shippo": "^2.15.0",
+    "square": "^43.2.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "engines": {
-    "node": ">=16.0.0"
-  }
+  "keywords": [
+    "ecommerce",
+    "api",
+    "neon",
+    "postgres"
+  ],
+  "author": "Esthetics by Anna",
+  "license": "MIT"
 }

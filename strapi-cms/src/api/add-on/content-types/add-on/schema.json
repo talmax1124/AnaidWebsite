@@ -1,0 +1,62 @@
+{
+  "kind": "collectionType",
+  "collectionName": "add_ons",
+  "info": {
+    "singularName": "add-on",
+    "pluralName": "add-ons",
+    "displayName": "Add-on",
+    "description": "Service add-ons and upgrades"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "richtext",
+      "required": false
+    },
+    "shortDescription": {
+      "type": "text",
+      "maxLength": 300
+    },
+    "price": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "duration": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "services": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::service.service",
+      "inversedBy": "addOns"
+    },
+    "category": {
+      "type": "string"
+    },
+    "benefits": {
+      "type": "text"
+    },
+    "applicableServiceTypes": {
+      "type": "text"
+    }
+  }
+}

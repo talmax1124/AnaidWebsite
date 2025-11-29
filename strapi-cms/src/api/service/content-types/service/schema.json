@@ -1,0 +1,84 @@
+{
+  "kind": "collectionType",
+  "collectionName": "services",
+  "info": {
+    "singularName": "service",
+    "pluralName": "services",
+    "displayName": "Service",
+    "description": "Beauty and esthetic services"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "richtext",
+      "required": false
+    },
+    "price": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "duration": {
+      "type": "string",
+      "required": false
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "beforeAfterImages": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "category": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category.category",
+      "inversedBy": "services"
+    },
+    "addOns": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::add-on.add-on",
+      "mappedBy": "services"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "available": {
+      "type": "boolean",
+      "default": true
+    },
+    "serviceType": {
+      "type": "enumeration",
+      "enum": ["Facial", "Chemical Peel", "Microdermabrasion", "HydraFacial", "Massage", "Waxing", "Lash Extensions", "Brow Services", "Consultation"],
+      "required": true
+    },
+    "skinType": {
+      "type": "enumeration",
+      "enum": ["All Skin Types", "Dry", "Oily", "Combination", "Sensitive", "Mature"]
+    },
+    "benefits": {
+      "type": "text"
+    },
+    "preparation": {
+      "type": "text"
+    },
+    "aftercare": {
+      "type": "text"
+    }
+  }
+}

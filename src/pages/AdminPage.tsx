@@ -1,145 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '../contexts/AuthContext';
 import { 
-  Plus, 
-  Edit2, 
-  Trash2, 
   Calendar, 
   DollarSign, 
   Clock, 
   Users,
-  Settings,
-  Eye,
-  EyeOff,
-  MessageSquare
+  MessageSquare,
+  BarChart3,
+  ExternalLink,
+  TrendingUp,
+  Activity,
+  Eye
 } from 'lucide-react';
-import { Service, AddOn, Booking } from '../types';
+import { Booking } from '../types';
 import { 
-  subscribeToServices, 
-  subscribeToAddOns,
   subscribeToBookings,
-  createService,
-  updateService,
-  deleteService,
-  createAddOn,
-  updateAddOn,
-  deleteAddOn,
   updateBooking
-} from '../services/firebaseService';
-import ServiceModal from '../components/ServiceModal';
-import AddOnModal from '../components/AddOnModal';
+} from '../services/bookingService';
 import EnhancedBookingCard from '../components/EnhancedBookingCard';
 import CustomerHistory from '../components/CustomerHistory';
 import ScheduleManager from '../components/ScheduleManager';
 import UserManagement from '../components/UserManagement';
 import SMSSettings from '../components/SMSSettings';
+import OrderManagement from '../components/OrderManagement';
 
 const AdminPage: React.FC = () => {
-  const { user } = useUser();
-  const [services, setServices] = useState<Service[]>([]);
-  const [addOns, setAddOns] = useState<AddOn[]>([]);
+  const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [isAddOnModalOpen, setIsAddOnModalOpen] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
-  const [editingAddOn, setEditingAddOn] = useState<AddOn | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'addons' | 'bookings' | 'schedule' | 'users' | 'sms'>('services');
+  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'orders' | 'schedule' | 'users' | 'sms' | 'content'>('overview');
   const [loading, setLoading] = useState(true);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Subscribe to real-time services
-    const unsubscribeServices = subscribeToServices((servicesData) => {
-      setServices(servicesData);
-      setLoading(false);
-    });
-
-    // Subscribe to real-time add-ons
-    const unsubscribeAddOns = subscribeToAddOns((addOnsData) => {
-      setAddOns(addOnsData);
-    });
-
     // Subscribe to real-time bookings
     const unsubscribeBookings = subscribeToBookings((bookingsData) => {
       setBookings(bookingsData);
+      setLoading(false);
     });
 
     return () => {
-      unsubscribeServices();
-      unsubscribeAddOns();
       unsubscribeBookings();
     };
   }, []);
-
-  const handleCreateService = async (serviceData: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      await createService(serviceData);
-      setIsServiceModalOpen(false);
-    } catch (error) {
-      console.error('Error creating service:', error);
-    }
-  };
-
-  const handleUpdateService = async (serviceData: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!editingService) return;
-    
-    try {
-      await updateService(editingService.id, serviceData);
-      setEditingService(null);
-      setIsServiceModalOpen(false);
-    } catch (error) {
-      console.error('Error updating service:', error);
-    }
-  };
-
-  const handleDeleteService = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this service?')) {
-      try {
-        await deleteService(id);
-      } catch (error) {
-        console.error('Error deleting service:', error);
-      }
-    }
-  };
-
-  const handleCreateAddOn = async (addOnData: Omit<AddOn, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      await createAddOn(addOnData);
-      setIsAddOnModalOpen(false);
-    } catch (error) {
-      console.error('Error creating add-on:', error);
-    }
-  };
-
-  const handleUpdateAddOn = async (addOnData: Omit<AddOn, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!editingAddOn) return;
-    
-    try {
-      await updateAddOn(editingAddOn.id, addOnData);
-      setEditingAddOn(null);
-      setIsAddOnModalOpen(false);
-    } catch (error) {
-      console.error('Error updating add-on:', error);
-    }
-  };
-
-  const handleDeleteAddOn = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this add-on?')) {
-      try {
-        await deleteAddOn(id);
-      } catch (error) {
-        console.error('Error deleting add-on:', error);
-      }
-    }
-  };
-
-  const handleToggleServiceActive = async (service: Service) => {
-    try {
-      await updateService(service.id, { active: !service.active });
-    } catch (error) {
-      console.error('Error toggling service status:', error);
-    }
-  };
 
   const handleUpdateBooking = async (bookingId: string, updates: Partial<Booking>) => {
     try {
@@ -154,13 +56,10 @@ const AdminPage: React.FC = () => {
   };
 
   const stats = {
-    totalServices: services.length,
-    activeServices: services.filter(s => s.active).length,
-    totalAddOns: addOns.length,
-    activeAddOns: addOns.filter(a => a.active).length,
     totalBookings: bookings.length,
     pendingBookings: bookings.filter(b => b.status === 'pending').length,
     confirmedBookings: bookings.filter(b => b.status === 'confirmed').length,
+    completedBookings: bookings.filter(b => b.status === 'completed').length,
     totalRevenue: bookings
       .filter(b => b.status === 'completed')
       .reduce((sum, b) => sum + b.price, 0)
@@ -180,26 +79,13 @@ const AdminPage: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.firstName || 'Admin'}!
+            Welcome back, {user?.first_name || 'Admin'}!
           </h1>
-          <p className="text-gray-600">Manage your services, bookings, and business settings</p>
+          <p className="text-gray-600">Manage your bookings, users, and business operations</p>
         </div>
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Services</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalServices}</p>
-                <p className="text-xs text-green-600">{stats.activeServices} active</p>
-              </div>
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                <Settings className="w-6 h-6 text-primary-600" />
-              </div>
-            </div>
-          </div>
-
           <div className="card">
             <div className="flex items-center justify-between">
               <div>
@@ -216,9 +102,9 @@ const AdminPage: React.FC = () => {
           <div className="card">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Confirmed Today</p>
+                <p className="text-sm text-gray-600 mb-1">Confirmed</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.confirmedBookings}</p>
-                <p className="text-xs text-green-600">Active appointments</p>
+                <p className="text-xs text-green-600">Ready to serve</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <Users className="w-6 h-6 text-green-600" />
@@ -229,9 +115,22 @@ const AdminPage: React.FC = () => {
           <div className="card">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm text-gray-600 mb-1">Completed</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.completedBookings}</p>
+                <p className="text-xs text-purple-600">Successfully served</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
                 <p className="text-2xl font-bold text-gray-900">${stats.totalRevenue}</p>
-                <p className="text-xs text-primary-600">Completed bookings</p>
+                <p className="text-xs text-primary-600">From completed bookings</p>
               </div>
               <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
                 <DollarSign className="w-6 h-6 text-primary-600" />
@@ -244,12 +143,13 @@ const AdminPage: React.FC = () => {
         <div className="border-b border-gray-200 mb-8">
           <nav className="-mb-px flex space-x-8">
             {[
-              { id: 'services', label: 'Services', icon: Settings },
-              { id: 'addons', label: 'Add-Ons', icon: Plus },
+              { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'bookings', label: 'Bookings', icon: Calendar },
+              { id: 'orders', label: 'Orders', icon: DollarSign },
               { id: 'schedule', label: 'Schedule', icon: Clock },
               { id: 'users', label: 'Users', icon: Users },
               { id: 'sms', label: 'SMS Settings', icon: MessageSquare },
+              { id: 'content', label: 'Content Management', icon: ExternalLink },
             ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -267,191 +167,153 @@ const AdminPage: React.FC = () => {
           </nav>
         </div>
 
-        {/* Services Tab */}
-        {activeTab === 'services' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Manage Services</h2>
-              <button
-                onClick={() => {
-                  setEditingService(null);
-                  setIsServiceModalOpen(true);
-                }}
-                className="btn-primary flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Service</span>
-              </button>
-            </div>
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <div className="space-y-8">
+            {/* Quick Actions */}
+            <div className="card">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button
+                  onClick={() => setActiveTab('bookings')}
+                  className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                >
+                  <Calendar className="w-8 h-8 text-blue-600" />
+                  <div>
+                    <h4 className="font-medium text-gray-900">View Bookings</h4>
+                    <p className="text-sm text-gray-600">Manage upcoming appointments</p>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('orders')}
+                  className="flex items-center space-x-3 p-4 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors text-left"
+                >
+                  <DollarSign className="w-8 h-8 text-emerald-600" />
+                  <div>
+                    <h4 className="font-medium text-gray-900">Manage Orders</h4>
+                    <p className="text-sm text-gray-600">Track and fulfill orders</p>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('users')}
+                  className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors text-left"
+                >
+                  <Users className="w-8 h-8 text-green-600" />
+                  <div>
+                    <h4 className="font-medium text-gray-900">Manage Users</h4>
+                    <p className="text-sm text-gray-600">User roles and permissions</p>
+                  </div>
+                </button>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.map((service) => (
-                <div key={service.id} className="card relative">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-2xl">{service.icon}</div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{service.name}</h3>
-                        <p className="text-sm text-gray-600">{service.category}</p>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleToggleServiceActive(service)}
-                        className={`p-2 rounded-lg ${
-                          service.active 
-                            ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                        title={service.active ? 'Deactivate service' : 'Activate service'}
-                      >
-                        {service.active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingService(service);
-                          setIsServiceModalOpen(true);
-                        }}
-                        className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteService(service.id)}
-                        className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                <a
+                  href="http://localhost:3334"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors text-left"
+                >
+                  <ExternalLink className="w-8 h-8 text-purple-600" />
+                  <div>
+                    <h4 className="font-medium text-gray-900">Content Management</h4>
+                    <p className="text-sm text-gray-600">Edit services & products</p>
                   </div>
-                  
-                  <p className="text-gray-600 text-sm mb-4">{service.description}</p>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{service.duration}min</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <DollarSign className="w-4 h-4" />
-                        <span>${service.price}</span>
-                      </div>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      service.active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {service.active ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Add-Ons Tab */}
-        {activeTab === 'addons' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Manage Add-Ons</h2>
-              <button
-                onClick={() => {
-                  setEditingAddOn(null);
-                  setIsAddOnModalOpen(true);
-                }}
-                className="btn-primary flex items-center space-x-2"
-              >
-                <Plus className="w-5 h-5" />
-                <span>Add New Add-On</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {addOns.map((addOn) => (
-                <div key={addOn.id} className="card relative">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="text-3xl">{addOn.icon}</div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          setEditingAddOn(addOn);
-                          setIsAddOnModalOpen(true);
-                        }}
-                        className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAddOn(addOn.id)}
-                        className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => updateAddOn(addOn.id, { active: !addOn.active })}
-                        className={`p-2 rounded-lg ${
-                          addOn.active 
-                            ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {addOn.active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{addOn.name}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{addOn.description}</p>
-                  
-                  <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                    <span className="flex items-center">
-                      <DollarSign className="w-4 h-4 mr-1" />
-                      ${addOn.price}
-                    </span>
-                    <span className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      +{addOn.duration}min
-                    </span>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-500 mb-1">Compatible with:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {addOn.compatibleServices.map(serviceId => {
-                        const service = services.find(s => s.id === serviceId);
-                        return service ? (
-                          <span key={serviceId} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                            {service.name}
-                          </span>
-                        ) : null;
-                      })}
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      addOn.active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {addOn.active ? 'Active' : 'Inactive'}
-                    </span>
-                    <span className="text-xs text-gray-500 capitalize">{addOn.category}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {addOns.length === 0 && (
-              <div className="text-center py-12">
-                <Plus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No add-ons yet</h3>
-                <p className="text-gray-600">Create your first add-on to enhance your services.</p>
+                </a>
               </div>
-            )}
+            </div>
+
+            {/* Recent Bookings */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Recent Bookings</h3>
+                <button
+                  onClick={() => setActiveTab('bookings')}
+                  className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center"
+                >
+                  View All
+                  <Eye className="w-4 h-4 ml-1" />
+                </button>
+              </div>
+              
+              {bookings.length > 0 ? (
+                <div className="space-y-4">
+                  {bookings.slice(0, 3).map((booking) => (
+                    <EnhancedBookingCard
+                      key={booking.id}
+                      booking={booking}
+                      onUpdateBooking={handleUpdateBooking}
+                      onViewHistory={handleViewCustomerHistory}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No bookings yet</h4>
+                  <p className="text-gray-600">Bookings will appear here once customers start booking your services.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Business Insights */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="card">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">This Month</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Total Bookings</span>
+                    <span className="font-semibold">{stats.totalBookings}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Revenue</span>
+                    <span className="font-semibold">${stats.totalRevenue}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Completion Rate</span>
+                    <span className="font-semibold">
+                      {stats.totalBookings > 0 
+                        ? Math.round((stats.completedBookings / stats.totalBookings) * 100)
+                        : 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Pending</p>
+                      <p className="font-semibold">{stats.pendingBookings} bookings</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Confirmed</p>
+                      <p className="font-semibold">{stats.confirmedBookings} bookings</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Activity className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Completed</p>
+                      <p className="font-semibold">{stats.completedBookings} bookings</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -492,6 +354,17 @@ const AdminPage: React.FC = () => {
           </div>
         )}
 
+        {/* Orders Tab */}
+        {activeTab === 'orders' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Management</h2>
+              <p className="text-gray-600">Manage customer orders, track fulfillment, and update order status</p>
+            </div>
+            <OrderManagement />
+          </div>
+        )}
+
         {/* Schedule Tab */}
         {activeTab === 'schedule' && (
           <div>
@@ -524,30 +397,104 @@ const AdminPage: React.FC = () => {
             <SMSSettings />
           </div>
         )}
+
+        {/* Content Management Tab */}
+        {activeTab === 'content' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Content Management</h2>
+              <p className="text-gray-600">Manage your services, products, and content through Sanity CMS</p>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Sanity CMS Card */}
+              <div className="card">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <ExternalLink className="w-8 h-8 text-primary-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Sanity CMS</h3>
+                    <p className="text-gray-600">Professional content management system</p>
+                  </div>
+                </div>
+                
+                <p className="text-gray-700 mb-6">
+                  Manage all your content including services, products, categories, and media through our 
+                  professional CMS interface. Sanity provides a powerful and intuitive way to update your 
+                  website content without needing technical knowledge.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">Services Management</h4>
+                    <p className="text-sm text-gray-600">Add, edit, and organize your service offerings</p>
+                  </div>
+                  
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">Products Catalog</h4>
+                    <p className="text-sm text-gray-600">Manage your product inventory and descriptions</p>
+                  </div>
+                  
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">Media Library</h4>
+                    <p className="text-sm text-gray-600">Upload and organize images and media files</p>
+                  </div>
+                  
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">Categories</h4>
+                    <p className="text-sm text-gray-600">Organize content with custom categories</p>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-4">
+                  <a
+                    href="http://localhost:3334"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary flex items-center space-x-2"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Open Sanity CMS</span>
+                  </a>
+                  
+                  <a
+                    href="https://www.sanity.io/docs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary flex items-center space-x-2"
+                  >
+                    <span>View Documentation</span>
+                  </a>
+                </div>
+              </div>
+              
+              {/* Migration Notice */}
+              <div className="card bg-blue-50 border border-blue-200">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-1">
+                    <ExternalLink className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-blue-900 mb-2">Content Management Migration</h4>
+                    <p className="text-blue-800 text-sm mb-3">
+                      We've moved all content management (services, products, add-ons) to Sanity CMS for a better 
+                      editing experience. This allows you to focus on managing your business operations while 
+                      having professional content management tools.
+                    </p>
+                    <ul className="text-blue-800 text-sm space-y-1">
+                      <li>• Services and add-ons are now managed in Sanity</li>
+                      <li>• Product catalog with rich media support</li>
+                      <li>• Real-time content updates</li>
+                      <li>• Professional editing interface</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Service Modal */}
-      <ServiceModal
-        isOpen={isServiceModalOpen}
-        onClose={() => {
-          setIsServiceModalOpen(false);
-          setEditingService(null);
-        }}
-        onSubmit={editingService ? handleUpdateService : handleCreateService}
-        service={editingService}
-      />
-
-      {/* Add-On Modal */}
-      <AddOnModal
-        isOpen={isAddOnModalOpen}
-        onClose={() => {
-          setIsAddOnModalOpen(false);
-          setEditingAddOn(null);
-        }}
-        onSubmit={editingAddOn ? handleUpdateAddOn : handleCreateAddOn}
-        addOn={editingAddOn}
-        services={services.filter(s => s.active)}
-      />
 
       {/* Customer History Modal */}
       {selectedCustomerId && (

@@ -1,0 +1,73 @@
+{
+  "kind": "collectionType",
+  "collectionName": "products",
+  "info": {
+    "singularName": "product",
+    "pluralName": "products",
+    "displayName": "Product",
+    "description": "Beauty and skincare products"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "richtext",
+      "required": false
+    },
+    "price": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "salePrice": {
+      "type": "decimal",
+      "min": 0
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "gallery": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "category": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category.category",
+      "inversedBy": "products"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "inStock": {
+      "type": "boolean",
+      "default": true
+    },
+    "skinType": {
+      "type": "enumeration",
+      "enum": ["All Skin Types", "Dry", "Oily", "Combination", "Sensitive", "Mature"]
+    },
+    "ingredients": {
+      "type": "text"
+    },
+    "howToUse": {
+      "type": "text"
+    },
+    "benefits": {
+      "type": "text"
+    }
+  }
+}

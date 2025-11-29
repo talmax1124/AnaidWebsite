@@ -1,5 +1,6 @@
 import React from 'react';
-import { SignIn } from '@clerk/clerk-react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { useUserRole } from '../hooks/useUserRole';
 
 interface ProtectedRouteProps {
@@ -8,7 +9,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole = 'admin' }) => {
-  const { userRole, loading, clerkUser } = useUserRole();
+  const { userRole, loading } = useUserRole();
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -18,33 +21,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
     );
   }
 
-  if (!clerkUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {requiredRole === 'admin' ? 'Admin Access' : 'Account Required'}
-            </h2>
-            <p className="text-gray-600">
-              {requiredRole === 'admin' 
-                ? 'Sign in to manage your services and bookings' 
-                : 'Sign in to manage your appointments and bookings'
-              }
-            </p>
-          </div>
-          <SignIn 
-            routing="hash"
-            appearance={{
-              elements: {
-                rootBox: "w-full",
-                card: "shadow-xl"
-              }
-            }}
-          />
-        </div>
-      </div>
-    );
+  if (!isAuthenticated) {
+    // Save the attempted location so we can redirect back after login
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (requiredRole && userRole !== requiredRole) {

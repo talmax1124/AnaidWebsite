@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { UserButton } from '@clerk/clerk-react';
-import { Menu, X, Calendar, Settings } from 'lucide-react';
+import { Menu, X, Calendar, Settings, ShoppingCart, Heart, User, LogOut } from 'lucide-react';
 import { useUserRole } from '../hooks/useUserRole';
+import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import ShoppingCartComponent from './ShoppingCart';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAdmin, clerkUser } = useUserRole();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { isAdmin } = useUserRole();
+  const { getCartItemCount } = useCart();
+  const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
 
   const navigation = [
     { name: 'Home', href: '/' },
-    { name: 'Payment Options', href: '/payment-options' },
-    ...(clerkUser ? [
-      { name: 'Book Appointment', href: '/booking' },
-      { name: 'My Appointments', href: '/manage' },
+    { name: 'Services', href: '/services' },
+    { name: 'Products', href: '/products' },
+    ...(isAuthenticated ? [
+      { name: 'My Profile', href: '/profile?tab=appointments' }
     ] : [])
   ];
 
@@ -50,6 +56,33 @@ const Navbar: React.FC = () => {
               </Link>
             ))}
             
+            {/* Wishlist */}
+            {isAuthenticated && (
+              <Link
+                to="/wishlist"
+                className={`relative p-2 transition-colors duration-200 ${
+                  isActive('/wishlist')
+                    ? 'text-primary-600'
+                    : 'text-gray-700 hover:text-primary-600'
+                }`}
+              >
+                <Heart className="w-5 h-5" />
+              </Link>
+            )}
+
+            {/* Shopping Cart */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors duration-200"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {getCartItemCount() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {getCartItemCount()}
+                </span>
+              )}
+            </button>
+            
             {isAdmin && (
               <Link
                 to="/admin"
@@ -64,18 +97,80 @@ const Navbar: React.FC = () => {
               </Link>
             )}
 
-            {clerkUser ? (
-              <UserButton />
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                >
+                  <User className="w-5 h-5" />
+                  <span className="hidden md:block">{user?.firstName || 'User'}</span>
+                </button>
+                
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    <div className="px-4 py-2 border-b border-gray-200">
+                      <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
+                    </div>
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      My Profile
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        await logout();
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
-              <Link to="/booking" className="btn-primary">
+              <Link to="/login" className="btn-primary">
                 <Calendar className="w-4 h-4 mr-2" />
-                Sign In to Book
+                Sign In
               </Link>
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
+          {/* Mobile menu button and cart */}
+          <div className="md:hidden flex items-center space-x-2">
+            {/* Mobile Wishlist */}
+            {isAuthenticated && (
+              <Link
+                to="/wishlist"
+                className={`relative p-2 transition-colors duration-200 ${
+                  isActive('/wishlist')
+                    ? 'text-primary-600'
+                    : 'text-gray-700 hover:text-primary-600'
+                }`}
+              >
+                <Heart className="w-5 h-5" />
+              </Link>
+            )}
+
+            {/* Mobile Cart */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors duration-200"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {getCartItemCount() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {getCartItemCount()}
+                </span>
+              )}
+            </button>
+            
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-gray-700 hover:text-primary-600 focus:outline-none"
@@ -120,16 +215,34 @@ const Navbar: React.FC = () => {
               )}
 
               <div className="pt-2">
-                {clerkUser ? (
-                  <UserButton />
+                {isAuthenticated ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-3 px-4 py-2 bg-gray-50 rounded-lg">
+                      <User className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        await logout();
+                        setIsOpen(false);
+                      }}
+                      className="w-full flex items-center justify-center px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign out
+                    </button>
+                  </div>
                 ) : (
                   <Link
-                    to="/booking"
+                    to="/login"
                     onClick={() => setIsOpen(false)}
                     className="btn-primary inline-flex items-center"
                   >
                     <Calendar className="w-4 h-4 mr-2" />
-                    Sign In to Book
+                    Sign In
                   </Link>
                 )}
               </div>
@@ -137,6 +250,12 @@ const Navbar: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Shopping Cart Sidebar */}
+      <ShoppingCartComponent 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} 
+      />
     </nav>
   );
 };

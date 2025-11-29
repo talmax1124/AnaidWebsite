@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Save, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { BusinessSettings } from '../types';
-import { getBusinessSettings, updateBusinessSettings } from '../services/firebaseService';
+import { getBusinessSettings, updateBusinessSettings } from '../services/bookingService';
 import { defaultSMSSettings, formatSMSMessage, validatePhoneNumber } from '../services/twilioService';
 
 const SMSSettings: React.FC = () => {
@@ -19,11 +19,17 @@ const SMSSettings: React.FC = () => {
 
   useEffect(() => {
     if (settings?.messageTemplate) {
-      // Sample booking for preview
+      // Sample booking for preview - using proper date handling
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowDate = tomorrow.getFullYear() + '-' + 
+        String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' + 
+        String(tomorrow.getDate()).padStart(2, '0');
+      
       const sampleBooking = {
         clientName: 'Sarah Johnson',
         serviceName: 'Classic Lash Extension',
-        date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Tomorrow
+        date: tomorrowDate,
         time: '14:30',
         duration: 90,
         price: 120
@@ -76,7 +82,7 @@ const SMSSettings: React.FC = () => {
       
       // Handle case where business settings don't exist yet
       const currentSettings = businessSettings || {
-        businessName: 'Lashed By Anna',
+        businessName: 'Esthetics By Anna',
         email: '',
         phone: '',
         address: '',

@@ -174,6 +174,25 @@ const EnhancedBookingCard: React.FC<EnhancedBookingCardProps> = ({
         </div>
       </div>
 
+      {/* Add-ons */}
+      {booking.addOns && booking.addOns.length > 0 && (
+        <div className="mb-4">
+          <div className="bg-secondary-50 border border-secondary-200 p-4 rounded-xl">
+            <p className="text-sm font-semibold text-secondary-800 mb-3 flex items-center">
+              ✨ Add-ons:
+            </p>
+            <div className="space-y-2">
+              {booking.addOns.map((addOn: any, index: number) => (
+                <div key={index} className="flex justify-between text-sm bg-white p-2 rounded-lg border border-secondary-100">
+                  <span className="text-neutral-700">• {addOn.name}</span>
+                  <span className="text-primary-600 font-semibold">+${addOn.price}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Notes */}
       {(booking.notes || booking.serviceNotes) && (
         <div className="mb-4 space-y-2">
@@ -292,7 +311,7 @@ const EnhancedBookingCard: React.FC<EnhancedBookingCardProps> = ({
             </div>
             
             <div className="text-xs text-gray-500">
-              Created: {booking.createdAt.toLocaleDateString()}
+              Created: {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'Unknown'}
             </div>
           </div>
         </div>

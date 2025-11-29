@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, Calendar, DollarSign, Clock, TrendingUp } from 'lucide-react';
 import { Booking, User } from '../types';
-import { getUserBookings, getUserByClerkId } from '../services/firebaseService';
+import { getUserBookings, getUserByClerkId } from '../services/bookingService';
 
 interface CustomerHistoryProps {
   clientId: string;
@@ -204,6 +204,20 @@ const CustomerHistory: React.FC<CustomerHistoryProps> = ({ clientId, onClose }) 
                     </div>
                   )}
 
+                  {booking.addOns && booking.addOns.length > 0 && (
+                    <div className="mt-3 bg-secondary-50 border border-secondary-200 p-3 rounded-lg text-sm">
+                      <strong className="text-secondary-800 flex items-center mb-2">✨ Add-ons:</strong>
+                      <ul className="space-y-1">
+                        {booking.addOns.map((addOn: any, index: number) => (
+                          <li key={index} className="flex justify-between bg-white p-2 rounded border border-secondary-100">
+                            <span className="text-neutral-700">• {addOn.name}</span>
+                            <span className="text-primary-600 font-semibold">+${addOn.price}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   {booking.cancellationFee && (
                     <div className="mt-2 bg-red-50 p-2 rounded text-sm text-red-800">
                       <strong>Cancellation Fee:</strong> ${booking.cancellationFee}
@@ -213,7 +227,7 @@ const CustomerHistory: React.FC<CustomerHistoryProps> = ({ clientId, onClose }) 
 
                   <div className="mt-2 flex justify-between text-xs text-gray-500">
                     <span>Payment: {booking.paymentStatus}</span>
-                    <span>Booked: {booking.createdAt.toLocaleDateString()}</span>
+                    <span>Booked: {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'Unknown'}</span>
                   </div>
                 </div>
               ))}

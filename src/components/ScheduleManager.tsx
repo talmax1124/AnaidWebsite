@@ -6,8 +6,9 @@ import {
   createBooking,
   subscribeToBookings,
   deleteBooking
-} from '../services/firebaseService';
+} from '../services/bookingService';
 import { BusinessSettings } from '../types';
+import DatePicker from './DatePicker';
 
 interface BlackoutDate {
   date: string;
@@ -188,14 +189,14 @@ const ScheduleManager: React.FC = () => {
         
         <div className="space-y-4">
           {days.map(({ key, label }) => {
-            const daySettings = settings.workingHours[key];
+            const daySettings = settings?.workingHours?.[key] || { isOpen: false, startTime: '09:00', endTime: '17:00' };
             return (
               <div key={key} className="flex items-center space-x-4">
                 <div className="w-24">
                   <label className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      checked={daySettings?.isOpen || false}
+                      checked={daySettings.isOpen}
                       onChange={(e) => updateWorkingHours(key, 'isOpen', e.target.checked)}
                       className="w-4 h-4 text-primary-600 rounded"
                     />
@@ -206,17 +207,17 @@ const ScheduleManager: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <input
                     type="time"
-                    value={daySettings?.startTime || '09:00'}
+                    value={daySettings.startTime}
                     onChange={(e) => updateWorkingHours(key, 'startTime', e.target.value)}
-                    disabled={!daySettings?.isOpen}
+                    disabled={!daySettings.isOpen}
                     className="form-input w-32 text-sm"
                   />
                   <span className="text-gray-500">to</span>
                   <input
                     type="time"
-                    value={daySettings?.endTime || '17:00'}
+                    value={daySettings.endTime}
                     onChange={(e) => updateWorkingHours(key, 'endTime', e.target.value)}
-                    disabled={!daySettings?.isOpen}
+                    disabled={!daySettings.isOpen}
                     className="form-input w-32 text-sm"
                   />
                 </div>
@@ -246,13 +247,16 @@ const ScheduleManager: React.FC = () => {
           <div className="bg-gray-50 p-4 rounded-lg mb-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="form-label">Date</label>
-                <input
-                  type="date"
+                <DatePicker
+                  label="Date"
                   value={newBlackout.date}
-                  onChange={(e) => setNewBlackout({...newBlackout, date: e.target.value})}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="form-input"
+                  onChange={(date) => {
+                    if (date) {
+                      setNewBlackout({...newBlackout, date: date.toISOString().split('T')[0]});
+                    }
+                  }}
+                  minDate={new Date()}
+                  placeholder="Select blackout date"
                 />
               </div>
               <div>

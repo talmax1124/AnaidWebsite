@@ -1,0 +1,40 @@
+{
+  "collectionName": "components_product_inventories",
+  "info": {
+    "displayName": "Inventory",
+    "description": "Product inventory management",
+    "icon": "package"
+  },
+  "options": {},
+  "attributes": {
+    "trackQuantity": {
+      "type": "boolean",
+      "default": true
+    },
+    "quantity": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "lowStockThreshold": {
+      "type": "integer",
+      "default": 10,
+      "min": 0
+    },
+    "allowBackorder": {
+      "type": "boolean",
+      "default": false
+    },
+    "weight": {
+      "type": "decimal",
+      "min": 0
+    },
+    "dimensions": {
+      "type": "string"
+    },
+    "shippingRequired": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

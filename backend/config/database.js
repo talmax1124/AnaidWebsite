@@ -1,99 +1,49 @@
-const mysql = require('mysql2/promise');
+const { neon } = require('@neondatabase/serverless');
 
-const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME || 'lashed_by_anna',
-    port: process.env.DB_PORT || 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    acquireTimeout: 60000,
-    timeout: 60000,
-    reconnect: true
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
+const sql = neon(process.env.DATABASE_URL);
+
+const database = {
+  // Query function leveraging Neon's new .query helper
+  async query(queryText, params = []) {
+    try {
+      console.log('Executing query:', queryText);
+      console.log('With params:', params);
+
+      if (!params || params.length === 0) {
+        // sql.query expects at least one parameter, so run param-less queries via unsafe
+        return await sql.unsafe(queryText);
+      }
+
+      return await sql.query(queryText, params);
+    } catch (error) {
+      console.error('Database query error:', error);
+      console.error('Query text:', queryText);
+      console.error('Params:', params);
+      throw error;
+    }
+  },
+
+  async transaction(queries) {
+    try {
+      await sql`BEGIN`;
+      const results = [];
+      
+      for (const { query, params } of queries) {
+        const result = await this.query(query, params);
+        results.push(result);
+      }
+      
+      await sql`COMMIT`;
+      return results;
+    } catch (error) {
+      await sql`ROLLBACK`;
+      throw error;
+    }
+  }
 };
 
-// Create connection pool
-const pool = mysql.createPool(dbConfig);
-
-// Test database connection
-async function testConnection() {
-    try {
-        const connection = await pool.getConnection();
-        console.log('✅ Database connected successfully');
-        connection.release();
-        return true;
-    } catch (error) {
-        console.error('❌ Database connection failed:', error.message);
-        return false;
-    }
-}
-
-// Execute query with error handling
-async function executeQuery(query, params = []) {
-    try {
-        const [rows] = await pool.execute(query, params);
-        return rows;
-    } catch (error) {
-        console.error('Database query error:', error);
-        throw error;
-    }
-}
-
-// Get a single row
-async function getOne(query, params = []) {
-    const rows = await executeQuery(query, params);
-    return rows[0] || null;
-}
-
-// Get multiple rows
-async function getMany(query, params = []) {
-    return await executeQuery(query, params);
-}
-
-// Insert data and return insert ID
-async function insert(query, params = []) {
-    const result = await executeQuery(query, params);
-    return result.insertId;
-}
-
-// Update data and return affected rows
-async function update(query, params = []) {
-    const result = await executeQuery(query, params);
-    return result.affectedRows;
-}
-
-// Delete data and return affected rows
-async function remove(query, params = []) {
-    const result = await executeQuery(query, params);
-    return result.affectedRows;
-}
-
-// Transaction wrapper
-async function transaction(callback) {
-    const connection = await pool.getConnection();
-    try {
-        await connection.beginTransaction();
-        const result = await callback(connection);
-        await connection.commit();
-        connection.release();
-        return result;
-    } catch (error) {
-        await connection.rollback();
-        connection.release();
-        throw error;
-    }
-}
-
-module.exports = {
-    pool,
-    testConnection,
-    executeQuery,
-    getOne,
-    getMany,
-    insert,
-    update,
-    remove,
-    transaction
-};
+module.exports = database;

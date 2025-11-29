@@ -24,7 +24,7 @@ export interface SMSSettings {
 export const defaultSMSSettings: SMSSettings = {
   enabled: false,
   reminderHours: 24,
-  messageTemplate: "Hi {customerName}! This is a reminder that you have an appointment for {serviceName} tomorrow at {time}. If you need to reschedule, please call us at 321-316-9898. - Lashed By Anna"
+  messageTemplate: "Hi {customerName}! ✨ This is a reminder that you have an appointment for {serviceName} on {date} at {time}. If you need to reschedule, please call us at 321-316-9898. - Esthetics By Anna 💅"
 };
 
 // Format SMS message with booking details
@@ -37,7 +37,10 @@ export const formatSMSMessage = (template: string, booking: any): string => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Parse the date string properly to avoid timezone issues
+    const [year, month, day] = dateString.split('-').map(num => parseInt(num));
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
@@ -56,8 +59,16 @@ export const formatSMSMessage = (template: string, booking: any): string => {
 
 // Calculate when to send reminder
 export const calculateReminderTime = (booking: any, hoursBeforeAppointment: number): Date => {
-  const appointmentDateTime = new Date(`${booking.date}T${booking.time}`);
-  const reminderTime = new Date(appointmentDateTime.getTime() - (hoursBeforeAppointment * 60 * 60 * 1000));
+  // Create appointment datetime in local timezone to avoid timezone issues
+  const appointmentDate = new Date(booking.date);
+  const [hours, minutes] = booking.time.split(':');
+  
+  // Set the time on the appointment date
+  appointmentDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  
+  // Calculate reminder time by subtracting the specified hours
+  const reminderTime = new Date(appointmentDate.getTime() - (hoursBeforeAppointment * 60 * 60 * 1000));
+  
   return reminderTime;
 };
 

@@ -1,7 +1,7 @@
 // Temporary admin setup utility
 // Run this once to set up your first admin account
 
-import { updateUserRole } from '../services/firebaseService';
+import { updateUserRole } from '../services/bookingService';
 
 export const setupFirstAdmin = async (clerkUserId: string) => {
   try {

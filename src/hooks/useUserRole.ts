@@ -1,58 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
-import { getUserByClerkId, createOrUpdateUser } from '../services/firebaseService';
-import { User } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 export const useUserRole = () => {
-  const { user: clerkUser, isLoaded } = useUser();
-  const [userRole, setUserRole] = useState<'admin' | 'customer' | null>(null);
-  const [userData, setUserData] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, isAdmin } = useAuth();
 
-  useEffect(() => {
-    const initializeUser = async () => {
-      if (!isLoaded || !clerkUser) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        // Check if user exists in Firebase
-        let user = await getUserByClerkId(clerkUser.id);
-        
-        if (!user) {
-          // Create new user with customer role by default
-          await createOrUpdateUser(clerkUser, 'customer');
-          user = await getUserByClerkId(clerkUser.id);
-        } else {
-          // Update user info from Clerk
-          await createOrUpdateUser(clerkUser, user.role);
-          user = await getUserByClerkId(clerkUser.id);
-        }
-
-        if (user) {
-          setUserData(user);
-          setUserRole(user.role);
-        }
-      } catch (error) {
-        console.error('Error initializing user:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeUser();
-  }, [clerkUser, isLoaded]);
-
-  const isAdmin = userRole === 'admin';
-  const isCustomer = userRole === 'customer';
+  const isCustomer = user?.role === 'customer';
 
   return {
-    user: userData,
-    userRole,
+    user,
+    userRole: user?.role || null,
     isAdmin,
     isCustomer,
-    loading,
-    clerkUser
+    loading
   };
 };

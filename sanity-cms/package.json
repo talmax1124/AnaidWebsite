@@ -1,0 +1,23 @@
+{
+  "name": "sanity-cms",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@sanity/client": "^7.13.1",
+    "@sanity/image-url": "^2.0.1",
+    "@sanity/vision": "^4.19.0",
+    "sanity": "^4.19.0",
+    "styled-components": "^6.1.19"
+  }
+}

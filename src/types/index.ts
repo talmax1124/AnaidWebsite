@@ -98,3 +98,205 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// E-commerce Types
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  shortDescription?: string;
+  price: number;
+  compareAtPrice?: number; // original price for showing discounts
+  sku: string;
+  category: ProductCategory;
+  subcategory?: string;
+  tags: string[];
+  images: ProductImage[];
+  inventory: {
+    trackQuantity: boolean;
+    quantity: number;
+    lowStockThreshold: number;
+    allowBackorder: boolean;
+  };
+  variants?: ProductVariant[]; // for different sizes, colors, etc.
+  shipping: {
+    weight: number; // in grams
+    dimensions: {
+      length: number; // in cm
+      width: number;
+      height: number;
+    };
+    requiresShipping: boolean;
+  };
+  seo: {
+    title?: string;
+    metaDescription?: string;
+    slug: string;
+  };
+  active: boolean;
+  featured: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProductImage {
+  id: string;
+  url: string;
+  altText: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+export interface ProductVariant {
+  id: string;
+  name: string; // e.g., "Color", "Size"
+  options: ProductVariantOption[];
+}
+
+export interface ProductVariantOption {
+  id: string;
+  value: string; // e.g., "Red", "Large"
+  price?: number; // price adjustment
+  sku?: string;
+  inventory?: number;
+}
+
+export type ProductCategory = 
+  | 'lash-care'
+  | 'brow-care' 
+  | 'skincare'
+  | 'makeup'
+  | 'tools'
+  | 'accessories'
+  | 'gift-sets'
+  | 'aftercare'
+  | 'cleansers'
+  | 'serums'
+  | 'moisturizers'
+  | 'treatments'
+  | 'professional'
+  | 'home-care'
+  | 'new-arrivals'
+  | 'bestsellers'
+  | 'sale';
+
+export interface CartItem {
+  id?: string; // Database ID for cart items (needed for API operations)
+  productId: string;
+  productName: string;
+  productImage?: string; // Primary product image URL
+  variantOptions?: Record<string, string>; // variant selections
+  quantity: number;
+  price: number; // price at time of adding to cart
+}
+
+export interface Cart {
+  id: string;
+  userId?: string;
+  sessionId: string; // for guest users
+  items: CartItem[];
+  subtotal: number;
+  discount?: {
+    code: string;
+    amount: number;
+    type: 'percentage' | 'fixed';
+  };
+  shipping?: {
+    method: string;
+    cost: number;
+  };
+  tax?: number;
+  total: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  userId?: string;
+  customerInfo: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+  };
+  items: OrderItem[];
+  subtotal: number;
+  discount?: {
+    code: string;
+    amount: number;
+    type: 'percentage' | 'fixed';
+  };
+  shipping: {
+    method: string;
+    cost: number;
+    address: Address;
+    trackingNumber?: string;
+  };
+  tax: number;
+  total: number;
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially-refunded';
+  fulfillmentStatus: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  paymentMethod: 'paypal' | 'card' | 'cash' | 'store-credit';
+  paymentId?: string; // PayPal transaction ID
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  sku: string;
+  variantOptions?: Record<string, string>;
+  quantity: number;
+  price: number; // price at time of order
+  image?: string;
+}
+
+export interface Address {
+  firstName: string;
+  lastName: string;
+  company?: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  province: string;
+  country: string;
+  postalCode: string;
+  phone?: string;
+}
+
+export interface DiscountCode {
+  id: string;
+  code: string;
+  type: 'percentage' | 'fixed' | 'free-shipping';
+  value: number; // percentage (0-100) or fixed amount
+  minimumAmount?: number; // minimum cart value to apply
+  maximumUses?: number;
+  currentUses: number;
+  validFrom: Date;
+  validUntil: Date;
+  applicableProducts?: string[]; // product IDs, empty means all products
+  applicableCategories?: ProductCategory[];
+  active: boolean;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ShippingMethod {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  freeShippingThreshold?: number;
+  estimatedDays: {
+    min: number;
+    max: number;
+  };
+  weightLimit?: number; // in grams
+  zones: string[]; // shipping zones this method applies to
+  active: boolean;
+}
