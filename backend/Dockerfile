@@ -1,5 +1,8 @@
 # Backend Dockerfile
-FROM node:18-alpine
+FROM node:20-alpine
+
+# Install curl for health check
+RUN apk add --no-cache curl
 
 WORKDIR /app
 
@@ -7,7 +10,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy source code
 COPY . .
