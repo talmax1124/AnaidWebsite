@@ -43,8 +43,32 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
   const paymentReference = useRef(referenceId || `order-${Date.now()}`);
   const apiBaseUrl = process.env.REACT_APP_API_URL || '';
   const paymentRequestRef = useRef<any>(null);
+  const [locationId, setLocationId] = useState<string | undefined>(process.env.REACT_APP_SQUARE_LOCATION_ID);
 
   const shippingAmountValue = Number(shippingInfo?.selectedRate?.price || 0);
+  const customerCountry = (customerData?.country || 'US').toUpperCase();
+
+  // Fetch location id from backend if not provided to frontend
+  useEffect(() => {
+    if (locationId) return;
+
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch('/api/square/public-config');
+        const data = await res.json();
+        if (data?.success && data?.data?.locationId) {
+          setLocationId(data.data.locationId);
+          console.log('Loaded Square locationId from backend config');
+        } else {
+          console.error('Square location ID missing in backend config response');
+        }
+      } catch (err) {
+        console.error('Failed to load Square config', err);
+      }
+    };
+
+    fetchConfig();
+  }, [locationId]);
 
   // Calculate shipping with SHIPPO
   useEffect(() => {
@@ -134,14 +158,19 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
   useEffect(() => {
     const initializeSquarePayments = async () => {
       if (!isScriptLoaded || !window.Square || initializedRef.current) return;
+      if (!locationId) {
+        console.error('Square location ID missing. Set REACT_APP_SQUARE_LOCATION_ID in your frontend env.');
+        onError('Square location ID is not configured. Please set REACT_APP_SQUARE_LOCATION_ID.');
+        return;
+      }
 
       try {
-        console.log('Initializing Square Web Payments...');
+        console.log('Initializing Square Web Payments with location', locationId);
         
         // Initialize payments object
         const paymentsInstance = window.Square.payments(
           process.env.REACT_APP_SQUARE_APPLICATION_ID,
-          process.env.REACT_APP_SQUARE_LOCATION_ID
+          locationId
         );
         
         setPayments(paymentsInstance);
@@ -151,7 +180,7 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
         const shippingAmount = shippingAmountValue.toFixed(2);
         const totalAmount = (amount + shippingAmountValue).toFixed(2);
         const paymentRequest = paymentsInstance.paymentRequest({
-          countryCode: (customerData?.country || 'US').toUpperCase(),
+          countryCode: customerCountry,
           currencyCode: currency,
           total: {
             amount: totalAmount,
@@ -162,8 +191,9 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
             { amount: shippingAmount, label: 'Shipping' },
           ],
           requestShippingContact: true,
-          locationId: process.env.REACT_APP_SQUARE_LOCATION_ID,
         });
+        // Ensure locationId is present on payment request object for Cash App Pay
+        (paymentRequest as any).locationId = locationId;
         paymentRequestRef.current = paymentRequest;
 
         // Initialize Card Payment
@@ -171,11 +201,11 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
           const cardInstance = await paymentsInstance.card({
             style: {
               '.input-container': {
-                borderColor: '#E5E7EB',
-                borderRadius: '8px'
+                borderColor: '#CBD5E1',
+                borderRadius: '10px'
               },
               '.input-container.is-focus': {
-                borderColor: '#3B82F6'
+                borderColor: '#0EA5E9'
               },
               '.input-container.is-error': {
                 borderColor: '#EF4444'
@@ -228,10 +258,18 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
           const cashAppPayInstance = await paymentsInstance.cashAppPay({
             buttonTheme: 'dark',
             redirectURL: window.location.href,
-            referenceId: paymentReference.current
+            referenceId: paymentReference.current,
+            locationId
           });
+
+          if (!paymentRequestRef.current) {
+            throw new Error('Payment request not ready for Cash App Pay');
+          }
+
+          console.log('Attaching Cash App Pay with paymentRequest locationId:', paymentRequestRef.current?.locationId);
           await cashAppPayInstance.attach('#cash-app-pay-button', {
-            paymentRequest: paymentRequestRef.current
+            paymentRequest: paymentRequestRef.current,
+            locationId
           });
           setCashAppPay(cashAppPayInstance);
           console.log('Cash App Pay initialized');
@@ -249,7 +287,29 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
     if (isScriptLoaded) {
       initializeSquarePayments();
     }
-  }, [isScriptLoaded, onError]);
+  }, [amount, currency, customerCountry, isScriptLoaded, locationId, onError, shippingAmountValue]);
+
+  useEffect(() => {
+    if (!paymentRequestRef.current) return;
+
+    const shippingAmount = shippingAmountValue.toFixed(2);
+    const totalAmount = (amount + shippingAmountValue).toFixed(2);
+
+    try {
+      paymentRequestRef.current.update({
+        total: {
+          amount: totalAmount,
+          label: 'Total'
+        },
+        lineItems: [
+          { amount: amount.toFixed(2), label: 'Items' },
+          { amount: shippingAmount, label: 'Shipping' },
+        ]
+      });
+    } catch (error) {
+      console.error('Failed to update payment request:', error);
+    }
+  }, [amount, shippingAmountValue, shippingInfo]);
 
   // Handle payment processing
   const handlePayment = async (paymentMethod: any, source: string) => {
@@ -338,27 +398,6 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
     }
   };
 
-  // Apple Pay payment handler
-  const handleApplePayment = async () => {
-    if (applePay) {
-      await handlePayment(applePay, 'Apple Pay');
-    }
-  };
-
-  // Google Pay payment handler
-  const handleGooglePayment = async () => {
-    if (googlePay) {
-      await handlePayment(googlePay, 'Google Pay');
-    }
-  };
-
-  // Cash App Pay payment handler
-  const handleCashAppPayment = async () => {
-    if (cashAppPay) {
-      await handlePayment(cashAppPay, 'Cash App Pay');
-    }
-  };
-
   if (!isScriptLoaded) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -369,28 +408,6 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
       </div>
     );
   }
-
-  useEffect(() => {
-    if (!paymentRequestRef.current) return;
-
-    const shippingAmount = shippingAmountValue.toFixed(2);
-    const totalAmount = (amount + shippingAmountValue).toFixed(2);
-
-    try {
-      paymentRequestRef.current.update({
-        total: {
-          amount: totalAmount,
-          label: 'Total'
-        },
-        lineItems: [
-          { amount: amount.toFixed(2), label: 'Items' },
-          { amount: shippingAmount, label: 'Shipping' },
-        ]
-      });
-    } catch (error) {
-      console.error('Failed to update payment request:', error);
-    }
-  }, [amount, shippingAmountValue, shippingInfo]);
 
   const totalWithShipping = amount + shippingAmountValue;
 
@@ -415,7 +432,7 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
       )}
 
       {shippingInfo && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm">
           <div className="flex items-center mb-2">
             <Truck className="w-5 h-5 text-green-600 mr-2" />
             <span className="font-medium text-green-800">SHIPPO Shipping</span>
@@ -428,14 +445,14 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
       )}
 
       {/* Order Summary */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 shadow-sm">
         <h3 className="font-semibold text-gray-900 mb-3">Order Summary</h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Subtotal:</span>
             <span>${amount.toFixed(2)}</span>
           </div>
-          {shippingInfo?.selectedRate?.price && (
+          {shippingInfo?.selectedRate?.price !== undefined && (
             <div className="flex justify-between">
               <span>Shipping:</span>
               <span>${shippingInfo.selectedRate.price.toFixed(2)}</span>
@@ -456,13 +473,13 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
         </h3>
 
         {/* Credit/Debit Card */}
-        <div className="border rounded-lg p-4">
-          <h4 className="font-medium text-gray-700 mb-3">Credit or Debit Card</h4>
-          <div id="card-container" className="mb-4"></div>
+        <div className="border rounded-xl p-4 shadow-sm bg-white/80">
+          <h4 className="font-medium text-gray-800 mb-3">Credit or Debit Card</h4>
+          <div id="card-container" className="mb-4 rounded-lg border border-gray-200 p-3 bg-white"></div>
           <button
             onClick={handleCardPayment}
             disabled={!card || isProcessing || disabled}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center shadow"
           >
             {isProcessing ? (
               <>
@@ -479,39 +496,45 @@ const SquareWebPayments: React.FC<SquareWebPaymentsProps> = ({
         </div>
 
         {/* Digital Wallets */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-3">
           {/* Apple Pay */}
-          <div className="border rounded-lg p-4">
-            <h4 className="font-medium text-gray-700 mb-3 text-center">Apple Pay</h4>
-            <div id="apple-pay-button" className="min-h-[48px]"></div>
+          <div className="border rounded-xl p-4 shadow-sm bg-white/80 flex flex-col justify-between min-h-[150px]">
+            <div>
+              <h4 className="font-medium text-gray-800 mb-3 text-center">Apple Pay</h4>
+              <div id="apple-pay-button" className="min-h-[48px] rounded overflow-hidden"></div>
+            </div>
             {!applePay && (
-              <div className="text-center text-gray-500 text-sm mt-2">
+              <div className="text-center text-gray-500 text-sm mt-2 bg-gray-50 border border-gray-200 rounded-lg py-2">
                 <Smartphone className="w-4 h-4 mx-auto mb-1" />
-                Not available on this device
+                Not available on this device/domain
               </div>
             )}
           </div>
 
           {/* Google Pay */}
-          <div className="border rounded-lg p-4">
-            <h4 className="font-medium text-gray-700 mb-3 text-center">Google Pay</h4>
-            <div id="google-pay-button" className="min-h-[48px]"></div>
+          <div className="border rounded-xl p-4 shadow-sm bg-white/80 flex flex-col justify-between min-h-[150px]">
+            <div>
+              <h4 className="font-medium text-gray-800 mb-3 text-center">Google Pay</h4>
+              <div id="google-pay-button" className="min-h-[48px] rounded overflow-hidden"></div>
+            </div>
             {!googlePay && (
-              <div className="text-center text-gray-500 text-sm mt-2">
+              <div className="text-center text-gray-500 text-sm mt-2 bg-gray-50 border border-gray-200 rounded-lg py-2">
                 <Smartphone className="w-4 h-4 mx-auto mb-1" />
-                Not available on this device
+                Not available in this browser/frame
               </div>
             )}
           </div>
 
           {/* Cash App Pay */}
-          <div className="border rounded-lg p-4">
-            <h4 className="font-medium text-gray-700 mb-3 text-center">Cash App Pay</h4>
-            <div id="cash-app-pay-button" className="min-h-[48px]"></div>
+          <div className="border rounded-xl p-4 shadow-sm bg-white/80 flex flex-col justify-between min-h-[150px]">
+            <div>
+              <h4 className="font-medium text-gray-800 mb-3 text-center">Cash App Pay</h4>
+              <div id="cash-app-pay-button" className="min-h-[48px] rounded overflow-hidden"></div>
+            </div>
             {!cashAppPay && (
-              <div className="text-center text-gray-500 text-sm mt-2">
+              <div className="text-center text-gray-500 text-sm mt-2 bg-gray-50 border border-gray-200 rounded-lg py-2">
                 <Smartphone className="w-4 h-4 mx-auto mb-1" />
-                Not available
+                Not available for this location
               </div>
             )}
           </div>

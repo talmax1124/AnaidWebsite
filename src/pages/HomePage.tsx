@@ -9,7 +9,6 @@ const HomePage: React.FC = () => {
   const [addOns, setAddOns] = useState<SanityAddOn[]>([]);
   const [products, setProducts] = useState<SanityProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [scrollY, setScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { addToCart } = useCart();
@@ -53,10 +52,6 @@ const HomePage: React.FC = () => {
 
   // Scroll effect for parallax and animations
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
@@ -67,11 +62,8 @@ const HomePage: React.FC = () => {
     if (heroRef.current) {
       observer.observe(heroRef.current);
     }
-
-    window.addEventListener('scroll', handleScroll);
     
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       observer.disconnect();
     };
   }, []);
@@ -734,27 +726,12 @@ const HomePage: React.FC = () => {
                 {/* Main Image Container */}
                 <div className="aspect-[4/5] bg-gradient-to-br from-primary-100 to-secondary-100 rounded-3xl overflow-hidden shadow-2xl">
                   <img 
-                    src="https://i.ibb.co/4nRTzbwX/IMG-8889.jpg"
+                    src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80"
                     alt="Anna - Licensed Esthetician and Phlebotomist"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement;
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.innerHTML = `
-                          <div class="w-full h-full bg-gradient-to-br from-primary-200 to-secondary-200 flex items-center justify-center">
-                            <div class="text-center text-primary-600">
-                              <div class="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                              </div>
-                              <p class="text-lg font-semibold">Anna</p>
-                              <p class="text-sm opacity-80">Licensed Esthetician</p>
-                            </div>
-                          </div>
-                        `;
-                      }
+                      target.src = 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80&sat=-20';
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
@@ -784,22 +761,22 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Modern Contact Section */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 text-gray-900 relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 right-20 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 left-20 w-80 h-80 bg-secondary-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-20 right-20 w-96 h-96 bg-emerald-200/30 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 left-20 w-80 h-80 bg-teal-200/30 rounded-full blur-3xl"></div>
         </div>
         
         <div className="container-custom px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-12 lg:mb-16">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-500/20 rounded-xl mb-4">
-              <Phone className="w-6 h-6 text-primary-400" />
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-xl mb-4">
+              <Phone className="w-6 h-6 text-emerald-600" />
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
               Ready to Begin?
             </h2>
-            <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto">
               Take the first step towards your transformation. Book your consultation today 
               and discover the difference professional care makes.
             </p>
@@ -809,46 +786,46 @@ const HomePage: React.FC = () => {
             {/* Contact Information */}
             <div className="space-y-8">
               <div>
-                <h3 className="text-2xl font-bold mb-6">Get in Touch</h3>
-                <p className="text-gray-300 mb-8 leading-relaxed">
+                <h3 className="text-2xl font-bold mb-6 text-gray-900">Get in Touch</h3>
+                <p className="text-gray-600 mb-8 leading-relaxed">
                   Ready to experience professional esthetic care? Reach out through any of these 
                   convenient methods to schedule your personalized consultation.
                 </p>
               </div>
 
               <div className="space-y-6">
-                <div className="group flex items-start space-x-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <div className="w-12 h-12 bg-primary-500/20 rounded-xl flex items-center justify-center group-hover:bg-primary-500/30 transition-colors duration-300">
-                    <Phone className="w-6 h-6 text-primary-400" />
+                <div className="group flex items-start space-x-4 p-6 rounded-xl bg-white/70 backdrop-blur-sm border border-emerald-200/50 hover:bg-white/90 hover:shadow-lg transition-all duration-300">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition-colors duration-300">
+                    <Phone className="w-6 h-6 text-emerald-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-white mb-1">Call or Text</h4>
-                    <p className="text-gray-300">321 316 9898</p>
-                    <p className="text-sm text-gray-400">Quick response guaranteed</p>
+                    <h4 className="font-semibold text-gray-900 mb-1">Call or Text</h4>
+                    <p className="text-gray-700 font-medium">321 316 9898</p>
+                    <p className="text-sm text-gray-500">Quick response guaranteed</p>
                   </div>
                 </div>
 
-                <div className="group flex items-start space-x-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <div className="w-12 h-12 bg-secondary-500/20 rounded-xl flex items-center justify-center group-hover:bg-secondary-500/30 transition-colors duration-300">
-                    <Mail className="w-6 h-6 text-secondary-400" />
+                <div className="group flex items-start space-x-4 p-6 rounded-xl bg-white/70 backdrop-blur-sm border border-teal-200/50 hover:bg-white/90 hover:shadow-lg transition-all duration-300">
+                  <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center group-hover:bg-teal-200 transition-colors duration-300">
+                    <Mail className="w-6 h-6 text-teal-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-white mb-1">Email</h4>
-                    <p className="text-gray-300">anaidmdiazplaza@gmail.com</p>
-                    <p className="text-sm text-gray-400">For detailed inquiries</p>
+                    <h4 className="font-semibold text-gray-900 mb-1">Email</h4>
+                    <p className="text-gray-700 font-medium">anaidmdiazplaza@gmail.com</p>
+                    <p className="text-sm text-gray-500">For detailed inquiries</p>
                   </div>
                 </div>
 
-                <div className="group flex items-start space-x-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                  <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center group-hover:bg-yellow-500/30 transition-colors duration-300">
-                    <Clock className="w-6 h-6 text-yellow-400" />
+                <div className="group flex items-start space-x-4 p-6 rounded-xl bg-white/70 backdrop-blur-sm border border-cyan-200/50 hover:bg-white/90 hover:shadow-lg transition-all duration-300">
+                  <div className="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center group-hover:bg-cyan-200 transition-colors duration-300">
+                    <Clock className="w-6 h-6 text-cyan-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-white mb-1">Business Hours</h4>
-                    <div className="text-gray-300 text-sm space-y-1">
-                      <p><span className="font-medium">Mon & Wed:</span> 9AM - 9PM</p>
-                      <p><span className="font-medium">Tuesday:</span> 2PM - 6PM</p>
-                      <p><span className="font-medium">Fri - Sun:</span> 2PM - 10PM</p>
+                    <h4 className="font-semibold text-gray-900 mb-1">Business Hours</h4>
+                    <div className="text-gray-700 text-sm space-y-1">
+                      <p><span className="font-semibold">Mon & Wed:</span> 9AM - 9PM</p>
+                      <p><span className="font-semibold">Tuesday:</span> 2PM - 6PM</p>
+                      <p><span className="font-semibold">Fri - Sun:</span> 2PM - 10PM</p>
                     </div>
                   </div>
                 </div>
@@ -907,21 +884,21 @@ const HomePage: React.FC = () => {
           </div>
           
           {/* Bottom CTA */}
-          <div className="text-center mt-16 pt-8 border-t border-white/10">
-            <p className="text-gray-400 mb-4">
+          <div className="text-center mt-16 pt-8 border-t border-gray-200">
+            <p className="text-gray-600 mb-4">
               Questions? Don't hesitate to reach out. We're here to help make your experience perfect.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="tel:3213169898"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300"
+                className="inline-flex items-center justify-center px-6 py-3 bg-emerald-100 text-emerald-700 font-semibold rounded-xl border border-emerald-200 hover:bg-emerald-200 hover:shadow-md transition-all duration-300"
               >
                 <Phone className="w-5 h-5 mr-2" />
                 Call Now
               </a>
               <a 
                 href="mailto:anaidmdiazplaza@gmail.com"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-300"
+                className="inline-flex items-center justify-center px-6 py-3 bg-teal-100 text-teal-700 font-semibold rounded-xl border border-teal-200 hover:bg-teal-200 hover:shadow-md transition-all duration-300"
               >
                 <Mail className="w-5 h-5 mr-2" />
                 Send Email

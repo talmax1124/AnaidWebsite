@@ -43,6 +43,20 @@ const database = {
       await sql`ROLLBACK`;
       throw error;
     }
+  },
+
+  buildPaginationQuery(baseQuery, options) {
+    const { page = 1, limit = 10, orderBy = 'id', orderDirection = 'ASC' } = options;
+    const offset = (page - 1) * limit;
+    
+    const query = `
+      ${baseQuery}
+      ORDER BY ${orderBy} ${orderDirection}
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `;
+    
+    return { query };
   }
 };
 

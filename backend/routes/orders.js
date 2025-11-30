@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const { verifyJWT } = require('../middleware/jwtAuth');
+const emailService = require('../services/emailService');
 
 // Email service function for order status updates
 const sendOrderStatusUpdateEmail = async (order, updates) => {
@@ -435,6 +436,13 @@ router.get('/:userId/:orderId', async (req, res) => {
 // POST /api/orders - Create order from cart
 router.post('/', async (req, res) => {
   try {
+    console.log('📦 Order creation request received:', {
+      user_id: req.body.user_id,
+      customer_email: req.body.customer_email,
+      payment_method: req.body.payment_method,
+      payment_id: req.body.payment_id
+    });
+    
     const {
       user_id,
       customer_email,
@@ -627,6 +635,19 @@ router.post('/', async (req, res) => {
     `;
 
     const [order] = await db.query(orderQuery, [orderId]);
+
+    // Send order confirmation email
+    try {
+      console.log('📧 Sending order confirmation email to:', order.customer_email);
+      const emailResult = await emailService.sendOrderConfirmationEmail({
+        ...order,
+        items: order.items || cartData.items
+      });
+      console.log('✅ Order confirmation email sent successfully:', emailResult);
+    } catch (emailError) {
+      console.error('❌ Failed to send order confirmation email:', emailError);
+      // Don't fail the order creation if email fails
+    }
 
     res.status(201).json({
       success: true,

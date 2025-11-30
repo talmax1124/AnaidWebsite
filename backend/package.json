@@ -28,6 +28,7 @@
     "node-fetch": "^2.7.0",
     "shippo": "^2.15.0",
     "square": "^43.2.1",
+    "stripe": "^16.9.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

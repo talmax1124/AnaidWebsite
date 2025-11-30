@@ -1,8 +1,8 @@
 import React from 'react';
-import SimplifiedCheckout from '../components/SimplifiedCheckout';
+import SteppedCheckout from '../components/SteppedCheckout';
 
 const CheckoutPage: React.FC = () => {
-  return <SimplifiedCheckout />;
+  return <SteppedCheckout />;
 };
 
 export default CheckoutPage;

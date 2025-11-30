@@ -3,6 +3,18 @@ const { SquareClient, SquareEnvironment } = require('square');
 const router = express.Router();
 const ShippoService = require('../services/shippoService');
 
+// Public config for frontend (non-sensitive)
+router.get('/public-config', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      applicationId: process.env.SQUARE_APPLICATION_ID || null,
+      locationId: process.env.SQUARE_LOCATION_ID || null,
+      environment: process.env.SQUARE_ENVIRONMENT || 'sandbox',
+    },
+  });
+});
+
 // Initialize Square client
 const squareClient = new SquareClient({
   accessToken: process.env.SQUARE_ACCESS_TOKEN,

@@ -11,6 +11,8 @@
     "@sanity/client": "^7.13.1",
     "@sanity/image-url": "^2.0.1",
     "@square/web-payments-sdk-types": "^1.81.0",
+    "@stripe/react-stripe-js": "^2.7.3",
+    "@stripe/stripe-js": "^3.4.1",
     "@stackframe/stack": "^2.8.54",
     "@tanstack/react-query": "^5.90.1",
     "@testing-library/dom": "^10.4.1",

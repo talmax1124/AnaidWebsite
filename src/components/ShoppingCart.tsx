@@ -120,8 +120,6 @@ const ShoppingCart: React.FC<ShoppingCartProps> = ({ isOpen, onClose }) => {
               {cart.items.map((item, index) => {
                 const isUpdating = updatingItems.has(item.productId);
                 
-                console.log('Rendering cart item:', item);
-                
                 return (
                   <div 
                     key={`${item.productId}-${JSON.stringify(item.variantOptions || {})}`}

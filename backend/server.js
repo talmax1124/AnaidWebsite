@@ -33,8 +33,8 @@ app.use('/api/discounts', require('./routes/discounts'));
 app.use('/api/shipping', require('./routes/shipping'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/appointments', require('./routes/appointments'));
-app.use('/api/square', require('./routes/square'));
 app.use('/api/wishlist', require('./routes/wishlist'));
+app.use('/api/stripe', require('./routes/stripe'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

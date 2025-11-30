@@ -1,233 +1,149 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Package, ArrowLeft, Truck } from 'lucide-react';
-import { ordersAPI } from '../services/apiService';
 import { useCart } from '../contexts/CartContext';
-import { generateOrderNumber } from '../services/ecommerceService';
 
 const CheckoutSuccessPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [checkoutData, setCheckoutData] = useState<any>(null);
-  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-  const [orderCreated, setOrderCreated] = useState(false);
   const [shippingInfo, setShippingInfo] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { clearCart } = useCart();
 
-  // Email service function
-  const sendOrderConfirmationEmail = async (order: any, customerInfo: any) => {
-    try {
-      const PLUNK_API_KEY = 'sk_257aa612793467b1234c042f0bf71ece77b621a27b1dc70d';
-      const PLUNK_API_URL = 'https://api.useplunk.com/v1';
-      const ADMIN_EMAIL = 'noreply@estheticsbyanna.com';
-
-      const itemsHtml = order.items ? order.items.map((item: any) => `
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.productName}</td>
-          <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">${item.quantity}</td>
-          <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">$${item.price.toFixed(2)}</td>
-        </tr>
-      `).join('') : '';
-
-      const emailHtml = `
-        <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
-          <div style="background: linear-gradient(135deg, #ec4899, #3b82f6); padding: 20px; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Order Confirmation</h1>
-          </div>
-          
-          <div style="padding: 30px; background: white;">
-            <p style="font-size: 18px; color: #333;">Thank you for your order, ${customerInfo.firstName}!</p>
-            
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h2 style="color: #ec4899; margin-top: 0;">Order Details</h2>
-              <p><strong>Order Number:</strong> ${order.orderNumber}</p>
-              <p><strong>Order Total:</strong> $${(typeof order.total === 'number' ? order.total : parseFloat(order.total) || 0).toFixed(2)}</p>
-              <p><strong>Payment Method:</strong> Square Checkout</p>
-            </div>
-
-            ${order.items ? `
-            <h3 style="color: #333;">Items Ordered</h3>
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-              <thead>
-                <tr style="background: #f8f9fa;">
-                  <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Product</th>
-                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Qty</th>
-                  <th style="padding: 12px; text-align: right; border-bottom: 2px solid #ddd;">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${itemsHtml}
-              </tbody>
-            </table>
-            ` : ''}
-          </div>
-        </div>
-      `;
-
-      await fetch(`${PLUNK_API_URL}/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${PLUNK_API_KEY}`,
-        },
-        body: JSON.stringify({
-          to: customerInfo.email,
-          subject: `Order Confirmation - ${order.orderNumber}`,
-          body: emailHtml,
-          type: 'html',
-          from: {
-            email: ADMIN_EMAIL,
-            name: 'Esthetics By Anna'
-          }
-        }),
-      });
-
-      console.log('Order confirmation email sent successfully');
-    } catch (error) {
-      console.error('Failed to send order confirmation email:', error);
-    }
-  };
-
   useEffect(() => {
-    const createOrderFromSquarePayment = async () => {
-      if (isCreatingOrder || orderCreated) return;
-      
-      // Check for Square Payment Link success parameters
-      const checkoutId = searchParams.get('checkoutId');
-      const transactionId = searchParams.get('transactionId');
-      const referenceId = searchParams.get('referenceId');
+    const hydrateCheckoutSuccess = async () => {
+      setIsLoading(true);
+      try {
+        // First, check if we have actual order data stored
+        const orderSuccess = sessionStorage.getItem('order_success');
+        if (orderSuccess) {
+          const orderData = JSON.parse(orderSuccess);
+          console.log('Using order success data:', orderData);
+          setCheckoutData({
+            orderId: orderData.orderId,
+            orderNumber: orderData.orderNumber || orderData.order_number,
+            amount: orderData.total,
+            subtotal: orderData.subtotal,
+            shippingCost: orderData.shipping_cost || 0,
+            shippingMethod: orderData.shipping_method || 'Standard',
+            provider: 'stripe',
+            cartData: orderData.items ? { items: orderData.items } : null,
+            customerData: orderData.customerInfo || orderData.customer_info,
+            paymentId: orderData.payment_id
+          });
+          setShippingInfo({
+            method: orderData.shipping_method || 'Standard',
+            cost: orderData.shipping_cost || 0,
+            provider: 'stripe',
+          });
+          setErrorMessage(null); // Clear any error message
+          clearCart();
+          sessionStorage.removeItem('order_success');
+          return;
+        }
 
-      // Get checkout session data from sessionStorage (for both demo and real payments)
-      const storedSession = sessionStorage.getItem('square_checkout_session');
-      
-      // Handle Square Payment Link success
-      if ((checkoutId || transactionId) && storedSession) {
-        setIsCreatingOrder(true);
+        // Fallback: check for Stripe payment intent data
+        const paymentIntentId = searchParams.get('payment_intent');
+        const storedStripe = sessionStorage.getItem('stripe_checkout_session');
         
-        try {
-          const sessionData = JSON.parse(storedSession);
+        if (paymentIntentId && storedStripe) {
+          const sessionData = JSON.parse(storedStripe);
+          console.log('Using stripe session data:', sessionData);
           
-          if (sessionData.cartData && sessionData.customerData) {
-            // Generate order number
-            const orderNumber = generateOrderNumber();
-            
-            // Extract Square-SHIPPO shipping information
-            const shippingCost = sessionData.shippingCost || sessionData.shippingData?.rate?.price || 0;
-            const shippingMethod = sessionData.shippingMethod || sessionData.shippingData?.rate?.name || 'Standard';
-            const subtotalAmount = sessionData.subtotal || sessionData.cartData.subtotal || 0;
-            const totalAmount = sessionData.total || parseFloat(amount);
-            
-            // Set shipping info for display
-            setShippingInfo({
-              method: shippingMethod,
-              cost: shippingCost,
-              provider: sessionData.provider || 'square-shippo',
-              rates: sessionData.shippingRates || [],
-              selectedRate: sessionData.shippingData?.selectedRate
-            });
-            
-            // Create comprehensive order data with Square-SHIPPO integration
-            const orderData = {
-              user_id: null, // Set to null for guest users
-              customer_email: sessionData.customerData.email,
-              customer_first_name: sessionData.customerData.firstName,
-              customer_last_name: sessionData.customerData.lastName,
-              customer_phone: sessionData.customerData.phone,
-              shipping_address: JSON.stringify(sessionData.shippingData?.address || sessionData.customerData.address || 'Pickup'),
-              payment_method: 'square-payment-link',
-              payment_id: checkoutId || transactionId || sessionData.paymentLinkId || `square-${referenceId}`,
-              notes: `Square Payment Link with SHIPPO integration. Checkout ID: ${checkoutId || 'N/A'}, Transaction ID: ${transactionId || 'N/A'}, Shipping: ${shippingMethod} ($${shippingCost})`,
-              items: sessionData.cartData.items.map((item: any) => ({
-                product_id: item.productId,
-                product_name: item.productName || `Product #${item.productId.slice(0, 8)}`,
-                quantity: item.quantity,
-                price: typeof item.price === 'number' ? item.price : parseFloat(item.price.toString()) || 0,
-                variant_options: item.variantOptions,
-                image: item.productImage,
-              })),
-              subtotal: subtotalAmount,
-              total: totalAmount,
-              tax: sessionData.cartData.tax || 0,
-              discount: sessionData.cartData.discount,
-              shipping_cost: shippingCost,
-              shipping_method: shippingMethod,
-              order_number: orderNumber,
-              payment_status: 'paid',
-              fulfillment_status: 'pending',
-              square_payment_link_id: sessionData.paymentLinkId,
-              shippo_rates: JSON.stringify(sessionData.shippingRates || []),
-            };
-
-            // Create the order with Square-SHIPPO integration
-            const response = await ordersAPI.createOrder(orderData);
-            
-            if (response.success) {
-              setCheckoutData({
-                ...sessionData,
-                orderId: orderNumber,
-                amount: totalAmount,
-                subtotal: subtotalAmount,
-                shippingCost: shippingCost,
-                shippingMethod: shippingMethod,
-                provider: 'square-shippo'
-              });
-              
-              // Send comprehensive confirmation email with shipping details
-              await sendOrderConfirmationEmail({
-                ...response.data,
-                shipping_method: shippingMethod,
-                shipping_cost: shippingCost,
-                order_number: orderNumber
-              }, sessionData.customerData);
-              
-              // Clear cart
-              await clearCart();
-              setOrderCreated(true);
-              
-              console.log('Square-SHIPPO order created successfully:', {
-                orderNumber,
-                total: totalAmount,
-                shipping: shippingMethod,
-                shippingCost
-              });
-            }
-          }
-          
-          // Clear the session data after use
-          sessionStorage.removeItem('square_checkout_session');
-          
-        } catch (error) {
-          console.error('Failed to create demo order:', error);
-        } finally {
-          setIsCreatingOrder(false);
+          setCheckoutData({
+            orderId: paymentIntentId,
+            amount: sessionData.amount,
+            subtotal: sessionData.amount - (sessionData.shippingData?.selectedRate?.price || 0),
+            shippingCost: sessionData.shippingData?.selectedRate?.price || 0,
+            shippingMethod: sessionData.shippingData?.selectedRate?.name || 'Standard',
+            provider: 'stripe',
+            cartData: { items: sessionData.cartData || [] },
+            customerData: sessionData.customerData,
+          });
+          setShippingInfo({
+            method: sessionData.shippingData?.selectedRate?.name || 'Standard',
+            cost: sessionData.shippingData?.selectedRate?.price || 0,
+            provider: 'stripe',
+            selectedRate: sessionData.shippingData?.selectedRate,
+          });
+          clearCart();
+          sessionStorage.removeItem('stripe_checkout_session');
+        } else if (paymentIntentId) {
+          // Last resort: show minimal success with payment ID only
+          setCheckoutData({
+            orderId: paymentIntentId,
+            provider: 'stripe',
+            amount: null,
+            subtotal: null,
+            shippingCost: null,
+            shippingMethod: null,
+          });
+          setErrorMessage('Order details are not available, but your payment was successful.');
+        } else {
+          setErrorMessage('No order information found. If you completed a payment, please check your email for confirmation.');
         }
-      } else if (storedSession) {
-        // Handle regular checkout session data
-        try {
-          const sessionData = JSON.parse(storedSession);
-          setCheckoutData(sessionData);
-          sessionStorage.removeItem('square_checkout_session');
-        } catch (e) {
-          console.error('Failed to parse checkout session data:', e);
-        }
+      } catch (error) {
+        console.error('Error loading checkout success data:', error);
+        setErrorMessage('There was an error loading your order details.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    createOrderFromDemo();
-  }, [searchParams, isCreatingOrder, orderCreated, clearCart]);
+    hydrateCheckoutSuccess();
+  }, [searchParams, clearCart]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <Package className="w-8 h-8 text-gray-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Processing your order...
+            </h1>
+            <p className="text-gray-600 mb-6">
+              Please wait while we confirm your payment and create your order.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-          {/* Success Icon */}
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-green-600" />
-          </div>
+          {/* Error State */}
+          {errorMessage ? (
+            <>
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Package className="w-8 h-8 text-amber-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                Payment Received
+              </h1>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-amber-800">
+                {errorMessage}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Success Icon */}
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
 
-          {/* Success Message */}
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Payment Successful!
-          </h1>
+              {/* Success Message */}
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                Payment Successful!
+              </h1>
+            </>
+          )}
           
           <p className="text-gray-600 mb-6">
             Thank you for your order! Your payment was processed securely through Square{shippingInfo?.provider === 'square-shippo' && ' with SHIPPO-powered shipping'}.
@@ -267,7 +183,7 @@ const CheckoutSuccessPage: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <span className="font-medium">Payment:</span> Square Checkout
+                      <span className="font-medium">Payment:</span> {checkoutData.provider === 'stripe' ? 'Stripe' : 'Checkout'}
                     </div>
                     {checkoutData.shippingMethod && (
                       <div>
@@ -289,11 +205,11 @@ const CheckoutSuccessPage: React.FC = () => {
               </div>
 
               {/* Shipping Information */}
-              {shippingInfo && shippingInfo.provider === 'square-shippo' && (
+              {shippingInfo && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-left">
                   <h3 className="font-semibold text-green-800 mb-2 flex items-center">
                     <Truck className="w-4 h-4 mr-2" />
-                    SHIPPO Shipping Details
+                    Shipping Details
                   </h3>
                   <div className="text-sm text-green-700">
                     <p>Your order will be shipped via <strong>{shippingInfo.method}</strong></p>
@@ -323,6 +239,16 @@ const CheckoutSuccessPage: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="space-y-3">
+            {checkoutData?.orderId && !errorMessage && (
+              <Link
+                to={`/orders/${checkoutData.orderId}`}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors inline-flex items-center justify-center"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                View Order Details
+              </Link>
+            )}
+            
             <Link
               to="/"
               className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors inline-block"
