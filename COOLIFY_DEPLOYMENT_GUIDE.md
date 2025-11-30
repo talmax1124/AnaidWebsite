@@ -27,7 +27,7 @@ Ensure all Docker files are in place:
 #### Frontend Environment Variables:
 ```
 NODE_ENV=production
-REACT_APP_API_URL=https://backend.estheticsbyanna.com
+REACT_APP_API_URL=https://backend.estheticsbyanna.net
 REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_publishable_key
 REACT_APP_SQUARE_APPLICATION_ID=your_square_application_id
 REACT_APP_SQUARE_LOCATION_ID=your_square_location_id
@@ -40,10 +40,10 @@ PORT=3001
 DATABASE_URL=postgresql://user:password@host:port/database
 JWT_SECRET=your_super_secure_jwt_secret_min_32_chars
 JWT_EXPIRES_IN=7d
-FRONTEND_URL=https://estheticsbyanna.com
-CORS_ORIGIN=https://estheticsbyanna.com
+FRONTEND_URL=https://estheticsbyanna.net
+CORS_ORIGIN=https://estheticsbyanna.net
 PLUNK_API_KEY=sk_your_plunk_api_key
-PLUNK_FROM_EMAIL=noreply@estheticsbyanna.com
+PLUNK_FROM_EMAIL=noreply@estheticsbyanna.net
 PLUNK_FROM_NAME=Esthetics By Anna
 STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key
 STRIPE_PUBLISHABLE_KEY=pk_live_your_stripe_publishable_key
@@ -59,7 +59,7 @@ RATE_LIMIT_MAX_REQUESTS=100
 4. Set Dockerfile path to `backend/Dockerfile`
 5. Configure port `3001`
 6. Add all backend environment variables
-7. Set up domain: backend.estheticsbyanna.com
+7. Set up domain: backend.estheticsbyanna.net
 8. Deploy
 
 ### 4. Deploy Sanity CMS
@@ -75,7 +75,7 @@ RATE_LIMIT_MAX_REQUESTS=100
    SANITY_STUDIO_DATASET=production
    SANITY_STUDIO_API_VERSION=2023-05-03
    ```
-7. Set up domain: sanity.estheticsbyanna.com
+7. Set up domain: sanity.estheticsbyanna.net
 8. Deploy
 
 ### 5. Deploy Frontend
@@ -87,7 +87,7 @@ RATE_LIMIT_MAX_REQUESTS=100
 5. Configure port `80`
 6. Add frontend environment variables
 7. Update `REACT_APP_API_URL` to point to your backend domain
-8. Set up domain: estheticsbyanna.com
+8. Set up domain: estheticsbyanna.net
 9. Deploy
 
 ### 5. Configure Database
@@ -99,9 +99,9 @@ Ensure your Neon PostgreSQL database is accessible from your Coolify server:
 
 ### 6. Verify Deployment
 
-1. Check backend health: `https://backend.estheticsbyanna.com/api/health`
-2. Test Sanity CMS: `https://sanity.estheticsbyanna.com`
-3. Test frontend: `https://estheticsbyanna.com`
+1. Check backend health: `https://backend.estheticsbyanna.net/api/health`
+2. Test Sanity CMS: `https://sanity.estheticsbyanna.net`
+3. Test frontend: `https://estheticsbyanna.net`
 4. Verify API connectivity between all services
 5. Test key features:
    - User registration/login
@@ -170,7 +170,7 @@ Ensure your Neon PostgreSQL database is accessible from your Coolify server:
 
 ```bash
 # Test backend health
-curl https://backend.estheticsbyanna.com/api/health
+curl https://backend.estheticsbyanna.net/api/health
 
 # Check frontend build
 docker build -t frontend-test .

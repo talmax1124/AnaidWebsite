@@ -455,7 +455,7 @@ router.post('/create-checkout', async (req, res) => {
           },
           checkoutOptions: {
             redirectUrl: `${req.headers.origin || 'http://localhost:3000'}/checkout/success`,
-            merchantSupportEmail: 'support@estheticsbyanna.com'
+            merchantSupportEmail: 'support@estheticsbyanna.net'
           }
         };
         

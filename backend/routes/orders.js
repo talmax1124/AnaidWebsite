@@ -114,7 +114,7 @@ const sendOrderStatusUpdateEmail = async (order, updates) => {
         <div style="background: #e8f5e8; border: 1px solid #28a745; padding: 15px; border-radius: 6px; margin: 20px 0; text-align: center;">
           <p style="margin: 0; color: #155724;">
             <strong>Need Help?</strong> Contact our support team at 
-            <a href="mailto:support@estheticsbyanna.com" style="color: #155724;">support@estheticsbyanna.com</a>
+            <a href="mailto:support@estheticsbyanna.net" style="color: #155724;">support@estheticsbyanna.net</a>
           </p>
         </div>
 
