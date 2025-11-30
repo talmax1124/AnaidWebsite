@@ -1,0 +1,19 @@
+# Simplified Dockerfile for debugging
+FROM node:20-alpine as build
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+COPY . .
+
+# Set a default API URL if not provided
+ENV REACT_APP_API_URL=https://backend.estheticsbyanna.net
+
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Use default nginx config temporarily
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
