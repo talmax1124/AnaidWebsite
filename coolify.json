@@ -16,7 +16,7 @@
       },
       "domains": [
         {
-          "domain": "estheticsbyanna.com",
+          "domain": "estheticsbyanna.net",
           "redirect": false
         }
       ],
@@ -27,7 +27,7 @@
         },
         {
           "key": "REACT_APP_API_URL",
-          "value": "https://backend.estheticsbyanna.com"
+          "value": "https://backend.estheticsbyanna.net"
         }
       ]
     },
@@ -45,7 +45,7 @@
       },
       "domains": [
         {
-          "domain": "backend.estheticsbyanna.com",
+          "domain": "backend.estheticsbyanna.net",
           "redirect": false
         }
       ],
@@ -74,7 +74,7 @@
       },
       "domains": [
         {
-          "domain": "sanity.estheticsbyanna.com",
+          "domain": "sanity.estheticsbyanna.net",
           "redirect": false
         }
       ],

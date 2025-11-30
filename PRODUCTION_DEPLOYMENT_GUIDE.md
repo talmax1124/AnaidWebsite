@@ -4,9 +4,9 @@
 This guide provides step-by-step instructions to deploy the Esthetics by Anna website to Coolify with all three services: Frontend, Backend API, and Sanity CMS.
 
 ## Architecture
-- **Frontend**: React TypeScript app (Port 80) - `estheticsbyanna.com`
-- **Backend API**: Node.js Express server (Port 3001) - `backend.estheticsbyanna.com`  
-- **Sanity CMS**: Content management studio (Port 3333) - `sanity.estheticsbyanna.com`
+- **Frontend**: React TypeScript app (Port 80) - `estheticsbyanna.net`
+- **Backend API**: Node.js Express server (Port 3001) - `backend.estheticsbyanna.net`  
+- **Sanity CMS**: Content management studio (Port 3333) - `sanity.estheticsbyanna.net`
 - **Database**: Neon PostgreSQL (External)
 - **Email**: Plunk API service
 - **Payments**: Stripe & Square integration
@@ -43,7 +43,7 @@ Ensure your repository has these files:
    - **Build Context**: `backend`
    - **Dockerfile Path**: `backend/Dockerfile`
    - **Port**: `3001`
-   - **Domain**: `backend.estheticsbyanna.com`
+   - **Domain**: `backend.estheticsbyanna.net`
 
 ### Step 2: Backend Environment Variables
 Add these environment variables in Coolify:
@@ -61,12 +61,12 @@ JWT_SECRET=your_super_secure_jwt_secret_at_least_32_characters_long
 JWT_EXPIRES_IN=7d
 
 # CORS Configuration
-FRONTEND_URL=https://estheticsbyanna.com
-CORS_ORIGIN=https://estheticsbyanna.com
+FRONTEND_URL=https://estheticsbyanna.net
+CORS_ORIGIN=https://estheticsbyanna.net
 
 # Email Service (Plunk)
 PLUNK_API_KEY=sk_your_actual_plunk_api_key
-PLUNK_FROM_EMAIL=noreply@estheticsbyanna.com
+PLUNK_FROM_EMAIL=noreply@estheticsbyanna.net
 PLUNK_FROM_NAME=Esthetics By Anna
 
 # Payment Processing - Stripe
@@ -84,7 +84,7 @@ LOG_LEVEL=info
 ### Step 3: Deploy Backend
 1. Click "Deploy" in Coolify
 2. Monitor build logs for any errors
-3. Verify health check: `https://backend.estheticsbyanna.com/api/health`
+3. Verify health check: `https://backend.estheticsbyanna.net/api/health`
 
 ---
 
@@ -98,7 +98,7 @@ LOG_LEVEL=info
    - **Build Context**: `sanity-cms`
    - **Dockerfile Path**: `sanity-cms/Dockerfile`
    - **Port**: `3333`
-   - **Domain**: `sanity.estheticsbyanna.com`
+   - **Domain**: `sanity.estheticsbyanna.net`
 
 ### Step 2: Sanity Environment Variables
 Add these environment variables:
@@ -116,7 +116,7 @@ SANITY_STUDIO_API_VERSION=2023-05-03
 ### Step 3: Deploy Sanity CMS
 1. Click "Deploy" in Coolify
 2. Monitor build process
-3. Verify access: `https://sanity.estheticsbyanna.com`
+3. Verify access: `https://sanity.estheticsbyanna.net`
 
 ---
 
@@ -130,7 +130,7 @@ SANITY_STUDIO_API_VERSION=2023-05-03
    - **Build Context**: `.` (root directory)
    - **Dockerfile Path**: `Dockerfile`
    - **Port**: `80`
-   - **Domain**: `estheticsbyanna.com`
+   - **Domain**: `estheticsbyanna.net`
 
 ### Step 2: Frontend Environment Variables
 Add these environment variables:
@@ -141,7 +141,7 @@ NODE_ENV=production
 REACT_APP_ENVIRONMENT=production
 
 # API Configuration
-REACT_APP_API_URL=https://backend.estheticsbyanna.com
+REACT_APP_API_URL=https://backend.estheticsbyanna.net
 
 # Payment Integration
 REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_live_your_actual_stripe_publishable_key
@@ -152,7 +152,7 @@ REACT_APP_SQUARE_LOCATION_ID=your_square_location_id
 ### Step 3: Deploy Frontend
 1. Click "Deploy" in Coolify
 2. Monitor build process (this takes longest due to React build)
-3. Verify website loads: `https://estheticsbyanna.com`
+3. Verify website loads: `https://estheticsbyanna.net`
 
 ---
 
@@ -164,10 +164,10 @@ REACT_APP_SQUARE_LOCATION_ID=your_square_location_id
 - [ ] `DATABASE_URL` (Neon PostgreSQL connection string)
 - [ ] `JWT_SECRET` (32+ character secure string)
 - [ ] `JWT_EXPIRES_IN=7d`
-- [ ] `FRONTEND_URL=https://estheticsbyanna.com`
-- [ ] `CORS_ORIGIN=https://estheticsbyanna.com`
+- [ ] `FRONTEND_URL=https://estheticsbyanna.net`
+- [ ] `CORS_ORIGIN=https://estheticsbyanna.net`
 - [ ] `PLUNK_API_KEY` (from Plunk dashboard)
-- [ ] `PLUNK_FROM_EMAIL=noreply@estheticsbyanna.com`
+- [ ] `PLUNK_FROM_EMAIL=noreply@estheticsbyanna.net`
 - [ ] `PLUNK_FROM_NAME=Esthetics By Anna`
 - [ ] `STRIPE_SECRET_KEY` (sk_live_...)
 - [ ] `STRIPE_PUBLISHABLE_KEY` (pk_live_...)
@@ -178,7 +178,7 @@ REACT_APP_SQUARE_LOCATION_ID=your_square_location_id
 ### Frontend Required Variables ✅
 - [ ] `NODE_ENV=production`
 - [ ] `REACT_APP_ENVIRONMENT=production`
-- [ ] `REACT_APP_API_URL=https://backend.estheticsbyanna.com`
+- [ ] `REACT_APP_API_URL=https://backend.estheticsbyanna.net`
 - [ ] `REACT_APP_STRIPE_PUBLISHABLE_KEY` (pk_live_...)
 - [ ] `REACT_APP_SQUARE_APPLICATION_ID`
 - [ ] `REACT_APP_SQUARE_LOCATION_ID`
@@ -196,13 +196,13 @@ REACT_APP_SQUARE_LOCATION_ID=your_square_location_id
 ### 1. Service Health Checks
 ```bash
 # Backend API Health
-curl https://backend.estheticsbyanna.com/api/health
+curl https://backend.estheticsbyanna.net/api/health
 
 # Frontend Loading
-curl -I https://estheticsbyanna.com
+curl -I https://estheticsbyanna.net
 
 # Sanity CMS Access
-curl -I https://sanity.estheticsbyanna.com
+curl -I https://sanity.estheticsbyanna.net
 ```
 
 ### 2. Functional Testing
