@@ -1,6 +1,9 @@
 # Sanity CMS Dockerfile
 FROM node:20-alpine
 
+# Install curl for health check
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 # Copy package files
