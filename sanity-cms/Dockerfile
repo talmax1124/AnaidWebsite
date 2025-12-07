@@ -33,5 +33,8 @@ EXPOSE 3333
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3333 || exit 1
 
+# Set environment variable for serve to bind to all interfaces
+ENV HOST=0.0.0.0
+
 # Start the application using npm start
 CMD ["npm", "start"]
